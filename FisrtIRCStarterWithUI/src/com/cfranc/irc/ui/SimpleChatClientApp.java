@@ -148,7 +148,7 @@ public class SimpleChatClientApp {
 //		clientPwd=frameConnexion.connectionPanel.getPasswordField().getText();
 //    	
 //		return frameConnexion.res;
-		return false;
+		return true;
 
 	}
     
