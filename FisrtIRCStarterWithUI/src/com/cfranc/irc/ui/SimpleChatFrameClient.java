@@ -57,6 +57,7 @@ import javax.swing.JPopupMenu;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JTree;
@@ -156,6 +157,15 @@ public class SimpleChatFrameClient extends JFrame {
 
 		JMenuItem mntmEnregistrerSous = new JMenuItem(Messages.getString("SimpleChatFrameClient.6")); //$NON-NLS-1$
 		mnFile.add(mntmEnregistrerSous);
+		JSeparator separator1 = new JSeparator();
+		mnFile.add(separator1);
+		JMenuItem mntmDeconnexion = new JMenuItem(Messages.getString("SimpleChatFrameClient.libDeconnexion")); //$NON-NLS-1$
+		mntmDeconnexion.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				actionDeconnexion();
+			}
+		});
+		mnFile.add(mntmDeconnexion);
 
 		JMenu mnAffichage = new JMenu(Messages.getString("SimpleChatFrameClient.14")); //$NON-NLS-1$
 		mnAffichage.setMnemonic('A');
@@ -173,8 +183,8 @@ public class SimpleChatFrameClient extends JFrame {
 		mntmEnvoyer.setAction(sendAction);
 		mnOutils.add(mntmEnvoyer);
 
-		JSeparator separator = new JSeparator();
-		mnOutils.add(separator);
+		JSeparator separator2 = new JSeparator();
+		mnOutils.add(separator2);
 
 		JCheckBoxMenuItem chckbxmntmNewCheckItem = new JCheckBoxMenuItem(lockAction);
 		mnOutils.add(chckbxmntmNewCheckItem);
@@ -208,9 +218,10 @@ public class SimpleChatFrameClient extends JFrame {
 		treeModel.addTreeModelListener(new MyTreeModelListener());
 
 		treeUtilisateur = new JTree(treeModel);
-
+		treeUtilisateur.setRootVisible(false);
+		treeUtilisateur.setPreferredSize(new Dimension(100, 0));
+		treeUtilisateur.setMinimumSize(new Dimension(100, 0));
 		treeUtilisateur.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-
 		treeUtilisateur.addTreeSelectionListener(new TreeSelectionListener() {
 		    public void valueChanged(TreeSelectionEvent e) {
 		        DefaultMutableTreeNode node = (DefaultMutableTreeNode)
@@ -228,8 +239,9 @@ public class SimpleChatFrameClient extends JFrame {
 		    }
 		});
 
+		
 		splitPane.setLeftComponent(treeUtilisateur);
-
+		
 		JTabbedPane tabSalons = new JTabbedPane(JTabbedPane.TOP);
 		splitPane.setRightComponent(tabSalons);
 
@@ -308,6 +320,14 @@ public class SimpleChatFrameClient extends JFrame {
 		contentPane.add(toolBar, BorderLayout.NORTH);
 
 		JButton button = toolBar.add(sendAction);
+		
+		JButton btnDeconnexion = new JButton(Messages.getString("SimpleChatFrameClient.btnNewButton.text")); //$NON-NLS-1$
+		btnDeconnexion.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				actionDeconnexion();
+			}
+		});
+		toolBar.add(btnDeconnexion);
 	}
 
 	public JLabel getLblSender() {
@@ -416,7 +436,19 @@ public class SimpleChatFrameClient extends JFrame {
 			System.out.println("treeStructureChanged");
 		}
 	}
+	
 	public JTree getTreeUtilisateur() {
 		return treeUtilisateur;
+	}
+	
+	/**
+	 * 
+	 */
+	public void actionDeconnexion() {
+		try {
+			sender.quitServer();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
