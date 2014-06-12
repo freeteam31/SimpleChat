@@ -64,9 +64,10 @@ public class SimpleChatFrameServer extends JFrame{
 		clientTreeModel.addTreeModelListener(new MyTreeModelListener());
 
 		treeUtilisateur = new JTree(clientTreeModel);
-
+		treeUtilisateur.setRootVisible(false);
+		treeUtilisateur.setPreferredSize(new Dimension(100, 0));
+		treeUtilisateur.setMinimumSize(new Dimension(100, 0));
 		treeUtilisateur.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-
 		treeUtilisateur.addTreeSelectionListener(new TreeSelectionListener() {
 		    public void valueChanged(TreeSelectionEvent e) {
 		        DefaultMutableTreeNode node = (DefaultMutableTreeNode)
@@ -83,10 +84,6 @@ public class SimpleChatFrameServer extends JFrame{
 		       // ...
 		    }
 		});
-
-		
-		
-		//getContentPane().add(treeUtilisateur, BorderLayout.NORTH);
 
 		final JLabel statusBar=new JLabel("");
 		getContentPane().add(statusBar, BorderLayout.SOUTH);
