@@ -2,6 +2,8 @@ package com.cfranc.irc.server;
 
 public class User {
 
+	// Test de modif
+	
 	private String login;
 	private String pwd;
 	
