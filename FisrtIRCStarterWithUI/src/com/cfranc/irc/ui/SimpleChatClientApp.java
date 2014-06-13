@@ -256,8 +256,7 @@ public class SimpleChatClientApp implements ActionListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			System.out.println("NouveauProfil.actionPerformed");
-			
+			FicheUtilisateur.afficher();
 		}
 		
 	}
