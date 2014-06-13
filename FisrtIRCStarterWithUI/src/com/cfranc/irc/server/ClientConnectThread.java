@@ -11,6 +11,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 
 import com.cfranc.irc.IfClientServerProtocol;
 
@@ -22,7 +23,7 @@ import com.cfranc.irc.IfClientServerProtocol;
 public class ClientConnectThread extends Thread implements IfClientServerProtocol {
 	StyledDocument model=null;
 	//DefaultListModel<String> clientListModel;		
-	DefaultTreeModel clientTreeModel;
+	static DefaultTreeModel clientTreeModel;
 
 	private boolean canStop=false;
 	private ServerSocket server = null;
@@ -64,6 +65,7 @@ public class ClientConnectThread extends Thread implements IfClientServerProtoco
 				
 				// Accept new client or close the socket
 				acceptClient(socket);
+				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -87,22 +89,23 @@ public class ClientConnectThread extends Thread implements IfClientServerProtoco
 		String login=userPwd[1];
 		String pwd=userPwd[2];
 		User newUser=new User(login, pwd);
+		
 		boolean isUserOK=authentication(newUser);
-		if(isUserOK){
+		if (isUserOK) {
 			
-			ServerToClientThread client=new ServerToClientThread(newUser, socket);
+			ServerToClientThread client = new ServerToClientThread(newUser, socket);
 			dos.writeUTF(OK);
 
 			// Add user
-			if(BroadcastThread.addClient(newUser, client)){
+			if (BroadcastThread.addClient(newUser, client)) {
 				client.start();			
 				///clientListModel.addElement(newUser.getLogin());
 				((DefaultMutableTreeNode)clientTreeModel.getRoot()).add(new DefaultMutableTreeNode(newUser.getLogin()));
 				clientTreeModel.reload();
+				//clientTreeModel.reload();
 				dos.writeUTF(ADD+login);
 			}
-		}
-		else{
+		} else {
 			System.out.println("socket.close()");
 			dos.writeUTF(KO);
 			dos.close();
@@ -123,4 +126,19 @@ public class ClientConnectThread extends Thread implements IfClientServerProtoco
 		if (server != null)
 			server.close();
 	}
+
+	public static void supprimerUserTreeModelServer(User user) {
+		// On supprime le noeud
+		TreeNode noeudParcours = null;
+		Object objectParcours = null;
+		for (int i = 0; i < ((DefaultMutableTreeNode)clientTreeModel.getRoot()).getChildCount(); i++) {
+			noeudParcours = ((DefaultMutableTreeNode)clientTreeModel.getRoot()).getChildAt(i);
+			objectParcours = ((DefaultMutableTreeNode)noeudParcours).getUserObject();
+			if (((String)objectParcours).equals(user.getLogin())) {
+				clientTreeModel.removeNodeFromParent((DefaultMutableTreeNode)noeudParcours);
+				clientTreeModel.reload();
+			}
+		}
+	}
+
 }

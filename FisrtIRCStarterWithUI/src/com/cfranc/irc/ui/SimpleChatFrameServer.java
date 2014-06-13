@@ -128,12 +128,15 @@ public class SimpleChatFrameServer extends JFrame{
 			System.out.println("New value: " + node.getUserObject());
 		}
 		public void treeNodesInserted(TreeModelEvent e) {
+			clientTreeModel.reload();
 			System.out.println("treeNodesInserted");
 		}
 		public void treeNodesRemoved(TreeModelEvent e) {
+			clientTreeModel.reload();
 			System.out.println("treeNodesRemoved");
 		}
 		public void treeStructureChanged(TreeModelEvent e) {
+			//clientTreeModel.reload();
 			System.out.println("treeStructureChanged");
 		}
 	}

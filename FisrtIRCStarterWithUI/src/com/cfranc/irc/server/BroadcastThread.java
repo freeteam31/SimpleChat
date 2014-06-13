@@ -9,17 +9,17 @@ import com.cfranc.irc.IfClientServerProtocol;
 
 public class BroadcastThread extends Thread {
 	
-	public static HashMap<User, ServerToClientThread> clientTreadsMap=new HashMap<User, ServerToClientThread>();
-	static{
+	public static HashMap<User, ServerToClientThread> clientTreadsMap = new HashMap<User, ServerToClientThread>();
+	
+	static {
 		Collections.synchronizedMap(clientTreadsMap);
 	}
 	
 	public static boolean addClient(User user, ServerToClientThread serverToClientThread){
 		boolean res=true;
-		if(clientTreadsMap.containsKey(user)){
-			res=false;
-		}
-		else{
+		if (clientTreadsMap.containsKey(user)) {
+			res = false;
+		} else {
 			clientTreadsMap.put(user, serverToClientThread);
 			
 			//Envoi du nouveau client aux clients déjà connectés
@@ -49,9 +49,9 @@ public class BroadcastThread extends Thread {
 	 * @param sender
 	 * @param msg
 	 */
-	public static void sendMessage(User sender, String msg){
+	public static void sendMessage(User sender, String msg) {
 		
-		Collection<ServerToClientThread> clientTreads=clientTreadsMap.values();
+		Collection<ServerToClientThread> clientTreads = clientTreadsMap.values();
 		Iterator<ServerToClientThread> receiverClientThreadIterator=clientTreads.iterator();
 		
 		//Boucle sur les threads client
@@ -63,13 +63,37 @@ public class BroadcastThread extends Thread {
 		}
 	}
 	
-	public static void removeClient(User user){
+	/**
+	 * Déconnexion d'un client :
+	 * - on notifie aux autres clients la déconnexion 
+	 */
+	public static void removeClient(User user) {
+		System.out.println(">>BroadcastThread.removeClient("+user+")");
+		
+		notifierRemoveClient(user);
+		
 		clientTreadsMap.remove(user);
+		
+		ClientConnectThread.supprimerUserTreeModelServer(user);
+	}
+	
+	private static void removeClientsConnectes(User user) {
+		for (User mapKey : clientTreadsMap.keySet()) {
+			System.out.println("@@removeClientsConnectes");
+			clientTreadsMap.get(user).post(IfClientServerProtocol.DEL + mapKey.getLogin());
+		}
+	}
+
+	private static void notifierRemoveClient(User user) {
+		for (User mapKey : clientTreadsMap.keySet()) {
+//			System.out.println("@@notifierRemoveClient to "+clientTreadsMap.get(mapKey));
+			clientTreadsMap.get(mapKey).post(IfClientServerProtocol.DEL + user.getLogin());
+		}
 	}
 	
 	public static boolean accept(User user){
 		boolean res=true;
-		if(clientTreadsMap.containsKey(user)){
+		if (clientTreadsMap.containsKey(user)) {
 			res= false;
 		}
 		return res;

@@ -77,16 +77,11 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 
 	void readMsg() throws IOException{
 		String line = streamIn.readUTF();
-		System.out.println(line);
+		
+		System.out.println(">>ClientToServerThread.readMsg --> " + line);
 
 		if (line.startsWith(IfClientServerProtocol.ADD)) {
 			String newUser = line.substring(IfClientServerProtocol.ADD.length());
-			// Sprint 1 : liste des utilisateurs --> JTree
-//			if(!clientListModel.contains(newUser)){
-//				clientListModel.addElement(newUser);
-//				receiveMessage(newUser, " entre dans le salon...");
-//			}
-			
 			
 			// On ne créé un nouveau noeud que s'il n'existe pas déjà
 			boolean noeudExiste = false;
@@ -107,14 +102,22 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 			}
 			
 		} else if(line.startsWith(IfClientServerProtocol.DEL)){
-			String delUser=line.substring(IfClientServerProtocol.DEL.length());
+			String delUser = line.substring(IfClientServerProtocol.DEL.length());
+
+			// On supprime le noeud
+			TreeNode noeudParcours = null;
+			Object objectParcours = null;
+			for (int i = 0; i < ((DefaultMutableTreeNode)clientTreeModel.getRoot()).getChildCount(); i++) {
+				noeudParcours = ((DefaultMutableTreeNode)clientTreeModel.getRoot()).getChildAt(i);
+				objectParcours = ((DefaultMutableTreeNode)noeudParcours).getUserObject();
+				if (((String)objectParcours).equals(delUser)) {
+					clientTreeModel.removeNodeFromParent((DefaultMutableTreeNode)noeudParcours);
+					clientTreeModel.reload();
+					receiveMessage(delUser, " quitte le salon...");
+				}
+			}
 			
-			/** @todo EMUR */
-//			if(clientListModel.contains(delUser)){
-//				clientListModel.removeElement(delUser);
-//				receiveMessage(delUser, " quite le salon !");
-//			}
-		} else{
+		} else {
 			String[] userMsg=line.split(IfClientServerProtocol.SEPARATOR);
 			String user=userMsg[1];
 			receiveMessage(user, userMsg[2]);
@@ -143,9 +146,10 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 	}
 
 	public void quitServer() throws IOException{
-		streamOut.writeUTF(IfClientServerProtocol.DEL+login);
+		//System.out.println(">>quitServer() -->" + IfClientServerProtocol.DEL+login);
+		streamOut.writeUTF(IfClientServerProtocol.DEL + login);
 		streamOut.flush();
-		done=true;
+		done = true;
 	}
 
 	boolean done;

@@ -87,6 +87,7 @@ public class SimpleChatFrameClient extends JFrame {
 
 	JToolBar toolBar;
 	private JTree treeUtilisateur;
+	private JButton btnSend;
 
 
 	/**
@@ -293,7 +294,7 @@ public class SimpleChatFrameClient extends JFrame {
 				Messages.getString("SimpleChatFrameClient.12")); //$NON-NLS-1$
 		textField.getActionMap().put(Messages.getString("SimpleChatFrameClient.13"), sendAction); //$NON-NLS-1$
 
-		JButton btnSend = new JButton(sendAction);
+		btnSend = new JButton(sendAction);
 		btnSend.setMnemonic(KeyEvent.VK_ENTER);
 		GroupLayout gl_panel = new GroupLayout(panel);
 		gl_panel.setHorizontalGroup(
@@ -447,8 +448,12 @@ public class SimpleChatFrameClient extends JFrame {
 	public void actionDeconnexion() {
 		try {
 			sender.quitServer();
+			getBtnSend().setEnabled(false);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	public JButton getBtnSend() {
+		return btnSend;
 	}
 }

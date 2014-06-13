@@ -32,6 +32,7 @@ public class ServerToClientThread extends Thread{
 		try {
 			for (String msg : msgToPost) {
 					streamOut.writeUTF(msg);
+					System.out.println("streamOut.writeUTF(msg) " + msg);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -46,6 +47,7 @@ public class ServerToClientThread extends Thread{
 		streamIn = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 		streamOut = new DataOutputStream(socket.getOutputStream());
 	}
+	
 	public void close() throws IOException {
 		if (socket != null)
 			socket.close();
@@ -64,15 +66,27 @@ public class ServerToClientThread extends Thread{
 				try {
 					if(streamIn.available()>0){
 						String line = streamIn.readUTF();
-						String[] userMsg=line.split(IfClientServerProtocol.SEPARATOR);
-						String login=userMsg[1];
-						String msg=userMsg[2];
+						System.out.println(">>ServerToClientThread.line = " + line);
+						
+						String[] userMsg = line.split(IfClientServerProtocol.SEPARATOR);
+						String login = userMsg[1];
+						//System.out.println(">>userMsg[1]="+login);
+						
+						String msg = userMsg[2];
+						//System.out.println(">>userMsg[2]="+msg);
+						
 						done = msg.equals(".bye");
-						if(!done){
-							if(login.equals(user)){
-								System.err.println("ServerToClientThread::run(), login!=user"+login);
+						if (!done) {
+
+							//EMUR Déconnexion 
+							if (login.equals("-")) {
+								BroadcastThread.removeClient(user);
+							} else {
+								if (login.equals(user)) {
+									System.err.println("ServerToClientThread::run(), login!=user"+login);
+								}
+								BroadcastThread.sendMessage(user, msg);
 							}
-							BroadcastThread.sendMessage(user,msg);
 						}
 					}
 					else{
