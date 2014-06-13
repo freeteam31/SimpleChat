@@ -2,6 +2,8 @@ package com.cfranc.irc.ui;
 
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
@@ -10,6 +12,7 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.text.BadLocationException;
@@ -24,7 +27,7 @@ import javax.swing.tree.DefaultTreeModel;
 import com.cfranc.irc.client.ClientToServerThread;
 import com.cfranc.irc.server.ClientConnectThread;
 
-public class SimpleChatClientApp {
+public class SimpleChatClientApp implements ActionListener {
     static String[] ConnectOptionNames = { "Connect" };	
     static String   ConnectTitle = "Connection Information";
     Socket socketClientServer;
@@ -34,6 +37,7 @@ public class SimpleChatClientApp {
     String clientPwd;
     
 	private SimpleChatFrameClient frame;
+	private SimpleChatConnexionDlg connexionDlg;
 	public StyledDocument documentModel=new DefaultStyledDocument();
 	// Sprint 1 : List --> JTree
 	//DefaultListModel<String> clientListModel = new DefaultListModel<String>();
@@ -65,10 +69,6 @@ public class SimpleChatClientApp {
 
 	private static ClientToServerThread clientToServerThread;
 			
-	public SimpleChatClientApp(){
-		
-	}
-	
 	public void displayClient() {
 		
 		// Init GUI
@@ -123,36 +123,24 @@ public class SimpleChatClientApp {
 		});
 	}
 	
+	
 	public void hideClient() {
 		
 		// Init GUI
 		((JFrame)this.frame).setVisible(false);
 	}
-	
-    boolean displayConnectionDialog() {
-//    	SimpleChatConnexion frameConnexion = new SimpleChatConnexion();
-//    	frameConnexion.setVisible(true);
-    	ConnectionPanel connectionPanel=new ConnectionPanel();
-		if (JOptionPane.showOptionDialog(null, connectionPanel, ConnectTitle,
-				JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
-				null, ConnectOptionNames, ConnectOptionNames[0]) == 0) {
-			serverPort=Integer.parseInt(connectionPanel.getServerPortField().getText());
-			serverName=connectionPanel.getServerField().getText();
-			clientName=connectionPanel.getUserNameField().getText();
-			clientPwd=connectionPanel.getPasswordField().getText();
-		}
-//    	
-//    	serverPort=Integer.parseInt(frameConnexion.connectionPanel.getServerPortField().getText());
-//		serverName=frameConnexion.connectionPanel.getServerField().getText();
-//		clientName=frameConnexion.connectionPanel.getUserNameField().getText();
-//		clientPwd=frameConnexion.connectionPanel.getPasswordField().getText();
-//    	
-//		return frameConnexion.res;
-		return true;
 
+	/**
+	 * Appel de l'écran de connexion
+	 */
+    void displayConnectionDialog() {
+		connexionDlg = new SimpleChatConnexionDlg();
+		connexionDlg.getBtnConnexion().addActionListener(new ClientConnexion());
+		connexionDlg.getBtnNouveau().addActionListener(new NouveauProfil());
+		connexionDlg.setVisible(true);
 	}
     
-    private void connectClient() {
+    private boolean connectClient() {
 		System.out.println("Establishing connection. Please wait ...");
 		try {
 			socketClientServer = new Socket(this.serverName, this.serverPort);
@@ -163,11 +151,14 @@ public class SimpleChatClientApp {
 			clientToServerThread.start();
 
 			System.out.println("Connected: " + socketClientServer);
+			
+			return true;
 		} catch (UnknownHostException uhe) {
 			System.out.println("Host unknown: " + uhe.getMessage());
 		} catch (IOException ioe) {
 			System.out.println("Unexpected exception: " + ioe.getMessage());
 		}
+		return false;
 	}
     
 	/**
@@ -178,12 +169,9 @@ public class SimpleChatClientApp {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					if (app.displayConnectionDialog() == true) {
+					app.displayConnectionDialog();
 
-						app.connectClient();
-
-						app.displayClient();
-					}
+					app.displayClient();
 
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -211,6 +199,50 @@ public class SimpleChatClientApp {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		System.out.println("Test " + e.getSource());
+	}
+	
+	/**
+	 * Classe implémentant le clic sur le bouton "Connexion" de l'écran de connexin du client
+	 * @author Administrateur
+	 *
+	 */
+	class ClientConnexion implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			System.out.println("ClientConnexion.actionPerformed");
+			
+			serverPort = Integer.parseInt(connexionDlg.getConnectionPanel().getServerPortField()
+					.getText());
+			serverName = connexionDlg.getConnectionPanel().getServerField().getText();
+			clientName = connexionDlg.getConnectionPanel().getUserNameField().getText();
+			clientPwd = connexionDlg.getConnectionPanel().getPasswordField().getText();
+
+			if (connectClient() == true) {
+				connexionDlg.setVisible(false);
+			}
+		}
+		
+	}
+	
+	/**
+	 * Classe implémentant le clic sur le bouton "Nouveau" de l'écran de connexin du client
+	 * @author Administrateur
+	 *
+	 */
+	class NouveauProfil implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			System.out.println("NouveauProfil.actionPerformed");
+			
+		}
+		
 	}
 
 }
