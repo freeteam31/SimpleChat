@@ -8,7 +8,7 @@ public class User {
 	private String pwd;
 	private String nom;
 	private String prenom;
-	private String cheminAvatar;
+	private String cheminImg;
 	
 	public String getNom() {
 		return nom;
@@ -22,11 +22,11 @@ public class User {
 	public void setPrenom(String prenom) {
 		this.prenom = prenom;
 	}
-	public String getCheminAvatar() {
-		return cheminAvatar;
+	public String getCheminImg() {
+		return cheminImg;
 	}
-	public void setCheminAvatar(String cheminAvatar) {
-		this.cheminAvatar = cheminAvatar;
+	public void setCheminImg(String cheminImg) {
+		this.cheminImg = cheminImg;
 	}
 	public String getLogin() {
 		return login;
