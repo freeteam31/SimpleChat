@@ -131,7 +131,7 @@ public class SimpleChatFrameClient extends JFrame {
 	public SimpleChatFrameClient() {
 		// Sprint 1 --> JTree
 		//this(null, new DefaultListModel<String>(), SimpleChatClientApp.defaultDocumentModel());
-		this(null, new DefaultTreeModel(new DefaultMutableTreeNode(Messages.getString("SimpleChatFrameClient.libRacine"))), SimpleChatClientApp.defaultDocumentModel());
+		this(null, new DefaultTreeModel(new DefaultMutableTreeNode(Messages.getString("SimpleChatFrameClient.libRacine"))), SimpleChatClientApp.getDefaultDocumentModel());
 	}
 
 	/**

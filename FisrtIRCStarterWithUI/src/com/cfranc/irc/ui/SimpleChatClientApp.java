@@ -27,9 +27,22 @@ import javax.swing.tree.DefaultTreeModel;
 import com.cfranc.irc.client.ClientToServerThread;
 import com.cfranc.irc.server.ClientConnectThread;
 
+/**
+ * Client de la messagerie IRC.
+ * 
+ * @author Administrateur
+ *
+ */
 public class SimpleChatClientApp implements ActionListener {
-    static String[] ConnectOptionNames = { "Connect" };	
+    public static final String BOLD_ITALIC = "BoldItalic";
+    public static final String GRAY_PLAIN = "Gray";
+
+	// Thread de communication avec le Server
+    private static ClientToServerThread clientToServerThread;
+
+	static String[] ConnectOptionNames = { "Connect" };	
     static String   ConnectTitle = "Connection Information";
+    
     Socket socketClientServer;
     int serverPort;
     String serverName;
@@ -38,17 +51,18 @@ public class SimpleChatClientApp implements ActionListener {
     
 	private SimpleChatFrameClient frame;
 	private SimpleChatConnexionDlg connexionDlg;
-	public StyledDocument documentModel=new DefaultStyledDocument();
-	// Sprint 1 : List --> JTree
-	//DefaultListModel<String> clientListModel = new DefaultListModel<String>();
+	
+	// Modèle du JTree affichant les utilisateurs
 	DefaultTreeModel clientTreeModel = new DefaultTreeModel(new DefaultMutableTreeNode(Messages.getString("SimpleChatFrameClient.libRacine")));
-	
-	
-    public static final String BOLD_ITALIC = "BoldItalic";
-    public static final String GRAY_PLAIN = "Gray";
-        
-	public static DefaultStyledDocument defaultDocumentModel() {
-		DefaultStyledDocument res=new DefaultStyledDocument();
+	// Objet d'affichage des messages
+	public StyledDocument documentModel = new DefaultStyledDocument();
+
+	/**
+	 * Retourne un objet d'affichage des messages
+	 * @return
+	 */
+	public static DefaultStyledDocument getDefaultDocumentModel() {
+		DefaultStyledDocument res = new DefaultStyledDocument();
 	    
 	    Style styleDefault = (Style) res.getStyle(StyleContext.DEFAULT_STYLE);
 	    
@@ -67,13 +81,13 @@ public class SimpleChatClientApp implements ActionListener {
 		return res;
 	}
 
-	private static ClientToServerThread clientToServerThread;
-			
+	/**
+	 * Affichage de la frame du client
+	 */
 	public void displayClient() {
 		
 		// Init GUI
 		// Sprint 1 : List --> JTree
-		//this.frame = new SimpleChatFrameClient(clientToServerThread, clientListModel, documentModel);
 		this.frame = new SimpleChatFrameClient(clientToServerThread, clientTreeModel, documentModel);
 		
 		this.frame.setTitle(this.frame.getTitle()+" : "+clientName+" connected to "+serverName+":"+serverPort);
@@ -83,31 +97,26 @@ public class SimpleChatClientApp implements ActionListener {
 			@Override
 			public void windowOpened(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
 			}
 			
 			@Override
 			public void windowIconified(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
 			}
 			
 			@Override
 			public void windowDeiconified(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
 			}
 			
 			@Override
 			public void windowDeactivated(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
 			}
 			
 			@Override
 			public void windowClosing(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
 			}
 			
 			@Override
@@ -118,20 +127,20 @@ public class SimpleChatClientApp implements ActionListener {
 			@Override
 			public void windowActivated(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
 			}
 		});
 	}
 	
-	
+	/**
+	 * Masque la frame du client
+	 */
 	public void hideClient() {
-		
 		// Init GUI
 		((JFrame)this.frame).setVisible(false);
 	}
 
 	/**
-	 * Appel de l'écran de connexion
+	 * Appel de l'écran de connexion utilisateur
 	 */
     void displayConnectionDialog() {
 		connexionDlg = new SimpleChatConnexionDlg();
@@ -140,18 +149,21 @@ public class SimpleChatClientApp implements ActionListener {
 		connexionDlg.setVisible(true);
 	}
     
+    /**
+     * Connection d'un client au serveur, à savoir :
+     * - création d'un socketClientServer
+     * - création et démarrage d'un clientToServerThread
+     * 
+     * @return
+     */
     private boolean connectClient() {
 		System.out.println("Establishing connection. Please wait ...");
 		try {
 			socketClientServer = new Socket(this.serverName, this.serverPort);
 			// Start connection services
-			// Sprint 1 
-			//clientToServerThread = new ClientToServerThread(documentModel, clientListModel, socketClientServer, clientName, clientPwd);
 			clientToServerThread = new ClientToServerThread(documentModel, clientTreeModel, socketClientServer, clientName, clientPwd);
 			clientToServerThread.start();
-
 			System.out.println("Connected: " + socketClientServer);
-			
 			return true;
 		} catch (UnknownHostException uhe) {
 			System.out.println("Host unknown: " + uhe.getMessage());
@@ -162,15 +174,18 @@ public class SimpleChatClientApp implements ActionListener {
 	}
     
 	/**
-	 * Launch the application.
+	 * Lancement de l'application Client, à savoir :
+	 * - instanciation d'un SimpleChatClientApp
+	 * - affichage de l'écran de connexion SimpleChatConnexionDlg
+	 * - affichage de l'écran client SimpleChatFrameClient
 	 */
 	public static void main(String[] args) {
 		final SimpleChatClientApp app = new SimpleChatClientApp();
+		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					app.displayConnectionDialog();
-
 					app.displayClient();
 
 				} catch (Exception e) {
@@ -179,16 +194,19 @@ public class SimpleChatClientApp implements ActionListener {
 			}
 
 		});
-		
+		// Le client reste en execution tant que ".bye" n'est pas saisi
 		Scanner sc=new Scanner(System.in);
 		String line="";
-		while(!line.equals(".bye")){
+		while (!line.equals(".bye")) {
 			line=sc.nextLine();			
 		}
-		
 		quitApp(app);
 	}
 
+	/**
+	 * Fermeture de l'application Client
+	 * @param app
+	 */
 	private static void quitApp(final SimpleChatClientApp app) {
 		try {
 			app.clientToServerThread.quitServer();
@@ -217,8 +235,7 @@ public class SimpleChatClientApp implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			System.out.println("ClientConnexion.actionPerformed");
 			
-			serverPort = Integer.parseInt(connexionDlg.getConnectionPanel().getServerPortField()
-					.getText());
+			serverPort = Integer.parseInt(connexionDlg.getConnectionPanel().getServerPortField().getText());
 			serverName = connexionDlg.getConnectionPanel().getServerField().getText();
 			clientName = connexionDlg.getConnectionPanel().getUserNameField().getText();
 			clientPwd = connexionDlg.getConnectionPanel().getPasswordField().getText();
