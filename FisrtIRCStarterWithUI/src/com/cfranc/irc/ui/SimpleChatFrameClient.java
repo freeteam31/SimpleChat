@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Scanner;
 
 import javax.swing.AbstractAction;
@@ -90,6 +92,12 @@ public class SimpleChatFrameClient extends JFrame {
 	public final JTabbedPane tabSalons;
 	public final JTree treeUtilisateur;
 	private JButton btnSend;
+	
+	private static SimpleChatFrameClient frame;
+
+	public static SimpleChatFrameClient getFrame() {
+		return frame;
+	}
 
 	/**
 	 * Launch the application.
@@ -99,7 +107,7 @@ public class SimpleChatFrameClient extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					SimpleChatFrameClient frame = new SimpleChatFrameClient();
+					frame = new SimpleChatFrameClient();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -140,6 +148,7 @@ public class SimpleChatFrameClient extends JFrame {
 	 */
 	//public SimpleChatFrameClient(IfSenderModel sender, ListModel<String> clientListModel, Document documentModel) {
 	public SimpleChatFrameClient(IfSenderModel sender, DefaultTreeModel clientTreeModel, Document documentModel) {
+		super();
 		this.sender=sender;
 		this.documentModel=documentModel;
 		//Sprint 1 modelListe --> modele JTree
@@ -147,7 +156,18 @@ public class SimpleChatFrameClient extends JFrame {
 		this.treeModel = clientTreeModel;
 
 		setTitle(Messages.getString("SimpleChatFrameClient.4")); //$NON-NLS-1$
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				System.out.println(">>windowClosing(WindowEvent e)");
+				actionDeconnexion();
+			}
+		});
+		
 		setBounds(100, 100, 661, 443);
 
 		JMenuBar menuBar = new JMenuBar();
@@ -450,7 +470,7 @@ public class SimpleChatFrameClient extends JFrame {
 	public void actionDeconnexion() {
 		try {
 			sender.quitServer();
-			getBtnSend().setEnabled(false);
+			this.dispose();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
