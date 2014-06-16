@@ -48,6 +48,7 @@ import javax.swing.text.Style;
 import javax.swing.text.StyledDocument;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import com.cfranc.irc.client.IfSenderModel;
@@ -86,9 +87,9 @@ public class SimpleChatFrameClient extends JFrame {
 	private boolean isAfficherBarreOutils = true;
 
 	JToolBar toolBar;
-	private JTree treeUtilisateur;
+	public final JTabbedPane tabSalons;
+	public final JTree treeUtilisateur;
 	private JButton btnSend;
-
 
 	/**
 	 * Launch the application.
@@ -218,7 +219,7 @@ public class SimpleChatFrameClient extends JFrame {
 
 		treeModel.addTreeModelListener(new MyTreeModelListener());
 
-		treeUtilisateur = new JTree(treeModel);
+		treeUtilisateur = new JTree(treeModel);		
 		treeUtilisateur.setRootVisible(false);
 		treeUtilisateur.setPreferredSize(new Dimension(100, 0));
 		treeUtilisateur.setMinimumSize(new Dimension(100, 0));
@@ -239,11 +240,12 @@ public class SimpleChatFrameClient extends JFrame {
 		       // ...
 		    }
 		});
+		treeUtilisateur.addMouseListener(new SimpleChatFrameClientController(this));
 
 		
 		splitPane.setLeftComponent(treeUtilisateur);
 		
-		JTabbedPane tabSalons = new JTabbedPane(JTabbedPane.TOP);
+		tabSalons = new JTabbedPane(JTabbedPane.TOP);
 		splitPane.setRightComponent(tabSalons);
 
 		JTextPane textArea = new JTextPane((StyledDocument)documentModel);
