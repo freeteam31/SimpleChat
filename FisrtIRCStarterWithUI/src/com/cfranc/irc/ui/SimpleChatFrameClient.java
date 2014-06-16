@@ -92,12 +92,6 @@ public class SimpleChatFrameClient extends JFrame {
 	public final JTabbedPane tabSalons;
 	public final JTree treeUtilisateur;
 	private JButton btnSend;
-	
-	private static SimpleChatFrameClient frame;
-
-	public static SimpleChatFrameClient getFrame() {
-		return frame;
-	}
 
 	/**
 	 * Launch the application.
@@ -107,7 +101,7 @@ public class SimpleChatFrameClient extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					frame = new SimpleChatFrameClient();
+					SimpleChatFrameClient frame = new SimpleChatFrameClient();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
