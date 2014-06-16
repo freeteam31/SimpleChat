@@ -3,6 +3,7 @@ package com.cfranc.irc.ui;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -31,13 +32,31 @@ import javax.swing.SwingConstants;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+import javax.swing.JList;
+import javax.swing.JComboBox;
+
+import com.cfranc.irc.server.SimpleChatDb;
+import com.cfranc.irc.server.User;
+
 public class FicheUtilisateur extends JDialog {
+
+	// Localisation des ressources images
+	private final static String PREFIXE_RELATIF = "resources/com/cfranc/irc/ui/";
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField textFieldLogin;
 	private JTextField textFieldNom;
 	private JTextField textFieldPrenom;
 	private JPasswordField passwordField;
+	private JLabel lblImageAvatar;
+
+	// ComboBox des avatars
+	private String nomFicImageSelectionnee = "Avatar01.jpg"; 
+	private ImageIcon imageSelectionnee = new ImageIcon(PREFIXE_RELATIF + "Avatar01.jpg");
+	private JPanel panelImageAvatar;
+
+	private String[] listAvatar = { "Avatar01.jpg", "Avatar02.jpg", "Avatar03.jpg", "Avatar04.jpg", "Avatar05.jpg", "Avatar06.jpg", "Avatar07.jpg", "Avatar08.jpg" };
+	private JComboBox comboAvatar;
 
 	/**
 	 * Launch the application.
@@ -61,18 +80,20 @@ public class FicheUtilisateur extends JDialog {
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(new BorderLayout(0, 0));
-		{
-			JPanel panelImageAvatar = new JPanel();
-			contentPanel.add(panelImageAvatar, BorderLayout.WEST);
-		}
+		panelImageAvatar = new JPanel();
+		contentPanel.add(panelImageAvatar, BorderLayout.WEST);
+		panelImageAvatar.setLayout(new BorderLayout(0, 0));
+		lblImageAvatar = new JLabel("");
+		panelImageAvatar.add(lblImageAvatar, BorderLayout.NORTH);
+		chargerImage("Avatar01.jpg");
 		{
 			JPanel panelInfosUtilisateur = new JPanel();
 			contentPanel.add(panelInfosUtilisateur, BorderLayout.CENTER);
 			GridBagLayout gbl_panelInfosUtilisateur = new GridBagLayout();
-			gbl_panelInfosUtilisateur.columnWidths = new int[]{347, 347, 0};
-			gbl_panelInfosUtilisateur.rowHeights = new int[]{76, 76, 76, 76, 76, 0};
+			gbl_panelInfosUtilisateur.columnWidths = new int[]{80, 250, 0};
+			gbl_panelInfosUtilisateur.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0};
 			gbl_panelInfosUtilisateur.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-			gbl_panelInfosUtilisateur.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+			gbl_panelInfosUtilisateur.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 			panelInfosUtilisateur.setLayout(gbl_panelInfosUtilisateur);
 			{
 				JLabel lblLogin = new JLabel("Login");
@@ -80,7 +101,7 @@ public class FicheUtilisateur extends JDialog {
 				gbc_lblLogin.fill = GridBagConstraints.HORIZONTAL;
 				gbc_lblLogin.weightx = 1.0;
 				gbc_lblLogin.anchor = GridBagConstraints.LINE_START;
-				gbc_lblLogin.insets = new Insets(0, 0, 5, 5);
+				gbc_lblLogin.insets = new Insets(5, 5, 5, 5);
 				gbc_lblLogin.gridx = 0;
 				gbc_lblLogin.gridy = 0;
 				panelInfosUtilisateur.add(lblLogin, gbc_lblLogin);
@@ -91,7 +112,7 @@ public class FicheUtilisateur extends JDialog {
 				gbc_textFieldLogin.weightx = 1.0;
 				gbc_textFieldLogin.anchor = GridBagConstraints.LINE_START;
 				gbc_textFieldLogin.fill = GridBagConstraints.HORIZONTAL;
-				gbc_textFieldLogin.insets = new Insets(0, 0, 5, 0);
+				gbc_textFieldLogin.insets = new Insets(5, 5, 5, 5);
 				gbc_textFieldLogin.gridx = 1;
 				gbc_textFieldLogin.gridy = 0;
 				panelInfosUtilisateur.add(textFieldLogin, gbc_textFieldLogin);
@@ -103,8 +124,9 @@ public class FicheUtilisateur extends JDialog {
 			{
 				JLabel lblPassword = new JLabel("Password");
 				GridBagConstraints gbc_lblPassword = new GridBagConstraints();
+				gbc_lblPassword.anchor = GridBagConstraints.LINE_START;
 				gbc_lblPassword.fill = GridBagConstraints.HORIZONTAL;
-				gbc_lblPassword.insets = new Insets(0, 0, 5, 5);
+				gbc_lblPassword.insets = new Insets(5, 5, 5, 5);
 				gbc_lblPassword.gridx = 0;
 				gbc_lblPassword.gridy = 1;
 				panelInfosUtilisateur.add(lblPassword, gbc_lblPassword);
@@ -116,7 +138,7 @@ public class FicheUtilisateur extends JDialog {
 				passwordField.setMaximumSize(new Dimension(400, 20));
 				GridBagConstraints gbc_passwordField = new GridBagConstraints();
 				gbc_passwordField.fill = GridBagConstraints.HORIZONTAL;
-				gbc_passwordField.insets = new Insets(0, 0, 5, 0);
+				gbc_passwordField.insets = new Insets(5, 5, 5, 5);
 				gbc_passwordField.gridx = 1;
 				gbc_passwordField.gridy = 1;
 				panelInfosUtilisateur.add(passwordField, gbc_passwordField);
@@ -124,8 +146,9 @@ public class FicheUtilisateur extends JDialog {
 			{
 				JLabel lblNom = new JLabel("Nom");
 				GridBagConstraints gbc_lblNom = new GridBagConstraints();
+				gbc_lblNom.anchor = GridBagConstraints.LINE_START;
 				gbc_lblNom.fill = GridBagConstraints.HORIZONTAL;
-				gbc_lblNom.insets = new Insets(0, 0, 5, 5);
+				gbc_lblNom.insets = new Insets(5, 5, 5, 5);
 				gbc_lblNom.gridx = 0;
 				gbc_lblNom.gridy = 2;
 				panelInfosUtilisateur.add(lblNom, gbc_lblNom);
@@ -138,7 +161,7 @@ public class FicheUtilisateur extends JDialog {
 				textFieldNom.setColumns(10);
 				GridBagConstraints gbc_textFieldNom = new GridBagConstraints();
 				gbc_textFieldNom.fill = GridBagConstraints.HORIZONTAL;
-				gbc_textFieldNom.insets = new Insets(0, 0, 5, 0);
+				gbc_textFieldNom.insets = new Insets(5, 5, 5, 5);
 				gbc_textFieldNom.gridx = 1;
 				gbc_textFieldNom.gridy = 2;
 				panelInfosUtilisateur.add(textFieldNom, gbc_textFieldNom);
@@ -148,8 +171,9 @@ public class FicheUtilisateur extends JDialog {
 				JLabel lblPrenom = new JLabel("Prenom");
 				lblPrenom.setAlignmentY(Component.TOP_ALIGNMENT);
 				GridBagConstraints gbc_lblPrenom = new GridBagConstraints();
+				gbc_lblPrenom.anchor = GridBagConstraints.LINE_START;
 				gbc_lblPrenom.fill = GridBagConstraints.HORIZONTAL;
-				gbc_lblPrenom.insets = new Insets(0, 0, 5, 5);
+				gbc_lblPrenom.insets = new Insets(5, 5, 5, 5);
 				gbc_lblPrenom.gridx = 0;
 				gbc_lblPrenom.gridy = 3;
 				panelInfosUtilisateur.add(lblPrenom, gbc_lblPrenom);
@@ -162,30 +186,36 @@ public class FicheUtilisateur extends JDialog {
 				textFieldPrenom.setColumns(10);
 				GridBagConstraints gbc_textFieldPrenom = new GridBagConstraints();
 				gbc_textFieldPrenom.fill = GridBagConstraints.HORIZONTAL;
-				gbc_textFieldPrenom.insets = new Insets(0, 0, 5, 0);
+				gbc_textFieldPrenom.insets = new Insets(5, 5, 5, 5);
 				gbc_textFieldPrenom.gridx = 1;
 				gbc_textFieldPrenom.gridy = 3;
 				panelInfosUtilisateur.add(textFieldPrenom, gbc_textFieldPrenom);
 			}
 			{
 				JLabel lblAvatar = new JLabel("Avatar");
+				lblAvatar.setAlignmentY(0.0f);
 				GridBagConstraints gbc_lblAvatar = new GridBagConstraints();
-				gbc_lblAvatar.fill = GridBagConstraints.BOTH;
-				gbc_lblAvatar.insets = new Insets(0, 0, 0, 5);
+				gbc_lblAvatar.anchor = GridBagConstraints.LINE_START;
+				gbc_lblAvatar.fill = GridBagConstraints.HORIZONTAL;
+				gbc_lblAvatar.insets = new Insets(5, 5, 5, 5);
 				gbc_lblAvatar.gridx = 0;
 				gbc_lblAvatar.gridy = 4;
 				panelInfosUtilisateur.add(lblAvatar, gbc_lblAvatar);
 			}
 			{
-				Choice choiceAvatar = new Choice();
-				choiceAvatar.setPreferredSize(new Dimension(400, 20));
-				choiceAvatar.setMinimumSize(new Dimension(400, 20));
-				choiceAvatar.setMaximumSize(new Dimension(400, 20));
-				GridBagConstraints gbc_choiceAvatar = new GridBagConstraints();
-				gbc_choiceAvatar.fill = GridBagConstraints.BOTH;
-				gbc_choiceAvatar.gridx = 1;
-				gbc_choiceAvatar.gridy = 4;
-				panelInfosUtilisateur.add(choiceAvatar, gbc_choiceAvatar);
+				comboAvatar = new JComboBox(listAvatar);
+				comboAvatar.setSelectedIndex(0);
+				comboAvatar.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+					    chargerImage((String)getComboAvatar().getSelectedItem());
+					}
+				});
+				GridBagConstraints gbc_comboAvatar = new GridBagConstraints();
+				gbc_comboAvatar.insets = new Insets(5, 5, 5, 5);
+				gbc_comboAvatar.fill = GridBagConstraints.HORIZONTAL;
+				gbc_comboAvatar.gridx = 1;
+				gbc_comboAvatar.gridy = 4;
+				panelInfosUtilisateur.add(comboAvatar, gbc_comboAvatar);
 			}
 		}
 		{
@@ -196,7 +226,26 @@ public class FicheUtilisateur extends JDialog {
 				JButton okButton = new JButton("Enregistrer");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						System.out.println("Enregistrer");
+						// Enregistrement de l'utilisateur en BDD
+						// On teste si :
+						// - le login est correctement renseigné
+						String loginUtilisateur = getTextFieldLogin().getText(); 
+						if ((loginUtilisateur != null) && (!loginUtilisateur.equals(""))) {
+							SimpleChatDb db = new SimpleChatDb();
+							
+							db.OuvrirBase();
+							User newUser = new User(loginUtilisateur, getPasswordField().getText());
+							newUser.setNom(getTextFieldNom().getText());
+							newUser.setPrenom(getTextFieldPrenom().getText());
+							newUser.setCheminImg((String)getComboAvatar().getSelectedItem());
+							db.ajouterUtilisateur(newUser);
+							
+							SwingUtilities.windowForComponent((Component)e.getSource()).dispose();
+							
+						} else {
+							System.out.println("Login incorrect !");
+						}
+						
 					}
 				});
 				okButton.setActionCommand("OK");
@@ -214,6 +263,7 @@ public class FicheUtilisateur extends JDialog {
 				buttonPane.add(cancelButton);
 			}
 		}
+
 	}
 
 	/**
@@ -230,6 +280,32 @@ public class FicheUtilisateur extends JDialog {
 		}
 	}
 
+	public JLabel getLblImageAvatar() {
+		return lblImageAvatar;
+	}
 
+	public void chargerImage(String nomFicImage) {
+		ImageIcon img = new ImageIcon(PREFIXE_RELATIF + nomFicImage);
+		getLblImageAvatar().setIcon(img);
+		getPanelImageAvatar().setSize(img.getIconWidth(), img.getIconHeight());
+	}
 
+	public JPanel getPanelImageAvatar() {
+		return panelImageAvatar;
+	}
+	public JComboBox getComboAvatar() {
+		return comboAvatar;
+	}
+	public JTextField getTextFieldLogin() {
+		return textFieldLogin;
+	}
+	public JPasswordField getPasswordField() {
+		return passwordField;
+	}
+	public JTextField getTextFieldNom() {
+		return textFieldNom;
+	}
+	public JTextField getTextFieldPrenom() {
+		return textFieldPrenom;
+	}
 }
