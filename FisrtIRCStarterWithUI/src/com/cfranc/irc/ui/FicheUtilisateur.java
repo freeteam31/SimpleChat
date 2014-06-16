@@ -25,7 +25,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
+import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Toolkit;
 
 import javax.swing.SwingConstants;
 
@@ -41,7 +43,8 @@ import com.cfranc.irc.server.User;
 public class FicheUtilisateur extends JDialog {
 
 	// Localisation des ressources images
-	private final static String PREFIXE_RELATIF = "resources/com/cfranc/irc/ui/";
+	//private final static String PREFIXE_RELATIF = "resources/com/cfranc/irc/ui/";
+	private final static String PREFIXE_RELATIF = "/com/cfranc/irc/ui/";
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField textFieldLogin;
@@ -51,8 +54,13 @@ public class FicheUtilisateur extends JDialog {
 	private JLabel lblImageAvatar;
 
 	// ComboBox des avatars
-	private String nomFicImageSelectionnee = "Avatar01.jpg"; 
-	private ImageIcon imageSelectionnee = new ImageIcon(PREFIXE_RELATIF + "Avatar01.jpg");
+	private String nomFicImageSelectionnee = "Avatar01.jpg";
+	
+	
+	
+	//private ImageIcon imageSelectionnee = new ImageIcon(PREFIXE_RELATIF + "Avatar01.jpg");
+	private ImageIcon imageSelectionnee = new ImageIcon(getClass().getResource(PREFIXE_RELATIF + "Avatar01.jpg"));
+	
 	private JPanel panelImageAvatar;
 
 	private String[] listAvatar = { "Avatar01.jpg", "Avatar02.jpg", "Avatar03.jpg", "Avatar04.jpg", "Avatar05.jpg", "Avatar06.jpg", "Avatar07.jpg", "Avatar08.jpg" };
@@ -285,7 +293,8 @@ public class FicheUtilisateur extends JDialog {
 	}
 
 	public void chargerImage(String nomFicImage) {
-		ImageIcon img = new ImageIcon(PREFIXE_RELATIF + nomFicImage);
+		//ImageIcon img = new ImageIcon(PREFIXE_RELATIF + nomFicImage);
+		ImageIcon img = new ImageIcon(getClass().getResource(PREFIXE_RELATIF + nomFicImage));
 		getLblImageAvatar().setIcon(img);
 		getPanelImageAvatar().setSize(img.getIconWidth(), img.getIconHeight());
 	}

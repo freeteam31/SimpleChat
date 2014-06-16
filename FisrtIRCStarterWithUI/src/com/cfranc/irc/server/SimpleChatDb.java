@@ -8,7 +8,7 @@ public class SimpleChatDb {
 	private ConnectionSGBD con;
 	
 	public void OuvrirBase() {
-		con = new ConnectionSGBD("jdbc:sqlite:./bdd/simplechat.sqlite", null, null);
+		con = new ConnectionSGBD("jdbc:sqlite:.\\bdd\\simplechat.sqlite", null, null);
 	}
 	
 	public void ajouterUtilisateur(User user) {
