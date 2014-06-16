@@ -66,9 +66,25 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 
 	public void receiveMessage(String user, String line, Style styleBI,
 			Style styleGP) {
+		
+		//String nomSalon = "Salon privé : #guest";
+		String nomSalon = null;
+		
 		try {        	
+			if (nomSalon==null) {
 			documentModel.insertString(documentModel.getLength(), user+" : ", styleBI);
 			documentModel.insertString(documentModel.getLength(), line+"\n", styleGP);
+			}else {
+//				for (int i = 0; i < tabSalons.getTabCount(); i++) {
+//				if (tabSalons.getTitleAt(i).equals(tabSalons)) {
+//					JScrollPane a = (JScrollPane) tabSalons.getTabComponentAt(i);
+//					JTextArea b = (JTextArea) a.getViewport().getView();
+//					
+//					b.getDocument().insertString(documentModel.getLength(), user+" : ", styleBI); //$NON-NLS-1$
+//					b.getDocument().insertString(documentModel.getLength(), line+"\n", styleGP); //$NON-NLS-1$
+//					
+//				}
+			}
 		} catch (BadLocationException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

@@ -29,9 +29,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
+import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListModel;
@@ -67,8 +69,6 @@ import javax.swing.JTree;
 import javax.swing.JTabbedPane;
 
 public class SimpleChatFrameClient extends JFrame {
-
-	private static Document documentModel;
 
 	// Sprint 1 remplacé par modèle JTree
 	//private static ListModel<String> listModel; 
@@ -121,18 +121,7 @@ public class SimpleChatFrameClient extends JFrame {
 			line=sc.nextLine();			
 		}
 	}
-
-	public static void sendMessage(String user, String line, Style styleBI,
-			Style styleGP) {
-		try {
-			documentModel.insertString(documentModel.getLength(), user+" : ", styleBI); //$NON-NLS-1$
-			documentModel.insertString(documentModel.getLength(), line+"\n", styleGP); //$NON-NLS-1$
-		} catch (BadLocationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}				        	
-	}
-
+	
 	public void sendMessage() {
 		sender.setMsgToSend(textField.getText());
 	}
@@ -150,7 +139,7 @@ public class SimpleChatFrameClient extends JFrame {
 	public SimpleChatFrameClient(IfSenderModel sender, DefaultTreeModel clientTreeModel, Document documentModel) {
 		super();
 		this.sender=sender;
-		this.documentModel=documentModel;
+		
 		//Sprint 1 modelListe --> modele JTree
 		//this.listModel=clientListModel;
 		this.treeModel = clientTreeModel;
