@@ -4,7 +4,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextPane;
+import javax.swing.text.StyledDocument;
 import javax.swing.tree.TreePath;
 
 
@@ -27,11 +29,14 @@ public class SimpleChatFrameClientController implements MouseListener {
 			//Ajout nouvel onglet
 			TreePath selPath = frameClient.treeUtilisateur.getPathForLocation(e.getX(), e.getY());
 			System.out.println("double-clic : " + selPath.getLastPathComponent());
-			String tabTitre = "Salon privé : #" + selPath.getLastPathComponent();
+			String tabTitre = selPath.getLastPathComponent().toString();
 
+			JTextArea textArea = new JTextArea();
+			textArea.setDocument(SimpleChatClientApp.getDefaultDocumentModel());
 			if (isSalonExist(tabTitre) == false) {			
-				frameClient.tabSalons.addTab(tabTitre, null, new JScrollPane(new JTextPane()), null);
-			}
+				frameClient.tabSalons.addTab(tabTitre, null, new JScrollPane(textArea), null);
+				frameClient.sender.ajouterModeleSalon(tabTitre, (StyledDocument) textArea.getDocument());
+			}						
 		}		
 	}
 	

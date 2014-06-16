@@ -7,9 +7,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.Collections;
+import java.util.HashMap;
 
 import javax.swing.DefaultListModel;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.text.Style;
 import javax.swing.text.StyledDocument;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -17,6 +20,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
 import com.cfranc.irc.IfClientServerProtocol;
+import com.cfranc.irc.server.ServerToClientThread;
+import com.cfranc.irc.server.User;
 import com.cfranc.irc.ui.SimpleChatClientApp;
 
 public class ClientToServerThread extends Thread implements IfSenderModel{
@@ -30,12 +35,29 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 	DefaultTreeModel clientTreeModel;
 
 	StyledDocument documentModel;
+	
+	public static HashMap<String, StyledDocument> documentModelSalons = new HashMap<String, StyledDocument>();
+	
+	static {
+		Collections.synchronizedMap(documentModelSalons);
+	}
+	
+	//Ajout du modèle à la liste
+	public void ajouterModeleSalon(String nomSalon, StyledDocument documentModel) {
+		if (!documentModelSalons.containsKey(nomSalon)) {
+			documentModelSalons.put(nomSalon, documentModel);
+		}
+	}
 
 	// Sprint 1 : liste des utilisateurs --> JTree
 	//public ClientToServerThread(StyledDocument documentModel, DefaultListModel<String> clientListModel, Socket socket, String login, String pwd) {
 	public ClientToServerThread(StyledDocument documentModel, DefaultTreeModel clientTreeModel, Socket socket, String login, String pwd) {
 		super();
 		this.documentModel=documentModel;
+		
+		//Ajout du modèle à la liste
+		ajouterModeleSalon("Salon général", documentModel);
+		
 		//this.clientListModel=clientListModel;
 		this.clientTreeModel = clientTreeModel;
 		this.socket = socket;
@@ -58,37 +80,31 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 			streamOut.close();
 	}
 
-	public void receiveMessage(String user, String line){
-		Style styleBI = ((StyledDocument)documentModel).getStyle(SimpleChatClientApp.BOLD_ITALIC);
-		Style styleGP = ((StyledDocument)documentModel).getStyle(SimpleChatClientApp.GRAY_PLAIN);
-		receiveMessage(user, line, styleBI, styleGP);
+	public void receiveMessage(String user, String line, String nomSalon){
+		//String nomSalon = "Salon privé : #guest";
+		
+		if (nomSalon==null) {
+			nomSalon = "Salon général";
+		}
+		 		
+		StyledDocument documentSalon = documentModelSalons.get(nomSalon);
+		
+		Style styleBI = ((StyledDocument)documentSalon).getStyle(SimpleChatClientApp.BOLD_ITALIC);
+		Style styleGP = ((StyledDocument)documentSalon).getStyle(SimpleChatClientApp.GRAY_PLAIN);
+		
+		receiveMessage(user, line, styleBI, styleGP, documentSalon);
 	}
 
-	public void receiveMessage(String user, String line, Style styleBI,
-			Style styleGP) {
+	public void receiveMessage(String user, String line, Style styleBI, Style styleGP, StyledDocument documentSalon) {
 		
-		//String nomSalon = "Salon privé : #guest";
-		String nomSalon = null;
-		
-		try {        	
-			if (nomSalon==null) {
-			documentModel.insertString(documentModel.getLength(), user+" : ", styleBI);
-			documentModel.insertString(documentModel.getLength(), line+"\n", styleGP);
-			}else {
-//				for (int i = 0; i < tabSalons.getTabCount(); i++) {
-//				if (tabSalons.getTitleAt(i).equals(tabSalons)) {
-//					JScrollPane a = (JScrollPane) tabSalons.getTabComponentAt(i);
-//					JTextArea b = (JTextArea) a.getViewport().getView();
-//					
-//					b.getDocument().insertString(documentModel.getLength(), user+" : ", styleBI); //$NON-NLS-1$
-//					b.getDocument().insertString(documentModel.getLength(), line+"\n", styleGP); //$NON-NLS-1$
-//					
-//				}
-			}
+		//
+		try {
+			documentSalon.insertString(documentSalon.getLength(), user + " : ", styleBI);
+			documentSalon.insertString(documentSalon.getLength(), line + "\n", styleGP);
 		} catch (BadLocationException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		}				        	
+		}
 	}
 
 	void readMsg() throws IOException{
@@ -114,7 +130,7 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 			if (!noeudExiste) { 
 				((DefaultMutableTreeNode)clientTreeModel.getRoot()).add(new DefaultMutableTreeNode(newUser));
 				clientTreeModel.reload();
-				receiveMessage(newUser, " entre dans le salon...");
+				receiveMessage(newUser, " entre dans le salon...", null);
 			}
 			
 		} else if(line.startsWith(IfClientServerProtocol.DEL)){
@@ -129,14 +145,21 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 				if (((String)objectParcours).equals(delUser)) {
 					clientTreeModel.removeNodeFromParent((DefaultMutableTreeNode)noeudParcours);
 					clientTreeModel.reload();
-					receiveMessage(delUser, " quitte le salon...");
+					receiveMessage(delUser, " quitte le salon...", null);
 				}
 			}
 			
+		} else if(line.startsWith(IfClientServerProtocol.PRIVATE)){
+			String[] userMsg=line.split(IfClientServerProtocol.SEPARATOR);
+			
+			String nomSalon=userMsg[1];
+			String user=userMsg[2];
+			String msg = userMsg[3];
+			receiveMessage(user, msg, nomSalon);
 		} else {
 			String[] userMsg=line.split(IfClientServerProtocol.SEPARATOR);
 			String user=userMsg[1];
-			receiveMessage(user, userMsg[2]);
+			receiveMessage(user, userMsg[2], null);
 		}
 	}
 
