@@ -23,8 +23,15 @@ import com.cfranc.irc.IfClientServerProtocol;
 import com.cfranc.irc.server.ServerToClientThread;
 import com.cfranc.irc.server.User;
 import com.cfranc.irc.ui.SimpleChatClientApp;
+import com.cfranc.irc.ui.SimpleChatFrameClient;
 
 public class ClientToServerThread extends Thread implements IfSenderModel{
+	
+	private SimpleChatFrameClient frameClient;
+	public void setFrameClient(SimpleChatFrameClient frameClient) {
+		this.frameClient = frameClient;
+	}
+
 	private Socket socket = null;
 	private DataOutputStream streamOut = null;
 	private DataInputStream streamIn = null;
@@ -82,12 +89,19 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 
 	public void receiveMessage(String user, String line, String nomSalon){
 		//String nomSalon = "Salon privé : #guest";
-		
+	
+System.out.println("receiveMessage() : user = " + user + ", line = " + line);		
 		if (nomSalon==null) {
 			nomSalon = "Salon général";
 		}
 		 		
 		StyledDocument documentSalon = documentModelSalons.get(nomSalon);
+		
+		//Ajout de l'onglet privé s'il n'existe pas
+		if (documentSalon==null) {
+			this.frameClient.ajouterOnglet(nomSalon); 
+			documentSalon = documentModelSalons.get(nomSalon);
+		}
 		
 		Style styleBI = ((StyledDocument)documentSalon).getStyle(SimpleChatClientApp.BOLD_ITALIC);
 		Style styleGP = ((StyledDocument)documentSalon).getStyle(SimpleChatClientApp.GRAY_PLAIN);
@@ -149,17 +163,29 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 				}
 			}
 			
-		} else if(line.startsWith(IfClientServerProtocol.PRIVATE)){
-			String[] userMsg=line.split(IfClientServerProtocol.SEPARATOR);
-			
-			String nomSalon=userMsg[1];
-			String user=userMsg[2];
-			String msg = userMsg[3];
-			receiveMessage(user, msg, nomSalon);
 		} else {
-			String[] userMsg=line.split(IfClientServerProtocol.SEPARATOR);
-			String user=userMsg[1];
-			receiveMessage(user, userMsg[2], null);
+			String[] userMsg = line.split(IfClientServerProtocol.SEPARATOR);
+			String emetteur = userMsg[1];
+			String destinataire = null;
+			String nomSalon = null;
+			String msg = null;
+			if (userMsg[2].equals("PRIVATE")) {
+				destinataire = userMsg[3];
+				if (login.equals(emetteur)) {
+					nomSalon = destinataire;
+				} else {
+					nomSalon = emetteur;
+				}
+
+				msg = userMsg[4];
+				System.out.println("login = " + login + ", emetteur = " + emetteur + ", destinataire = " + destinataire + ", nomSalon = " + nomSalon);	
+			} else {
+				msg = userMsg[2];
+				nomSalon = "Salon général";
+			}
+			
+			
+			receiveMessage(emetteur, msg, nomSalon);
 		}
 	}
 
@@ -176,7 +202,11 @@ public class ClientToServerThread extends Thread implements IfSenderModel{
 	private boolean sendMsg() throws IOException{
 		boolean res=false;
 		if(msgToSend!=null){
-			streamOut.writeUTF("#"+login+"#"+msgToSend);
+			if (msgToSend.startsWith(IfClientServerProtocol.PRIVATE)) {
+				streamOut.writeUTF("#"+login+msgToSend);
+			} else {
+				streamOut.writeUTF("#"+login+"#"+msgToSend);
+			}
 			msgToSend=null;
 			streamOut.flush();
 			res=true;

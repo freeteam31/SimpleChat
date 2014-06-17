@@ -1,5 +1,6 @@
 package com.cfranc.irc.server;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 
@@ -11,6 +12,17 @@ public class SimpleChatDb {
 		con = new ConnectionSGBD("jdbc:sqlite:.\\bdd\\simplechat.sqlite", null, null);
 	}
 	
+	public void fermerBase() {
+		if (con != null) {
+			try {
+				con.getConn().close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			con = null;
+		}
+	}
+
 	public void ajouterUtilisateur(User user) {
 		con.executeInsert("INSERT INTO UTILISATEURS (PSEUDO, NOM, PRENOM, CHEMIN_IMG, PASSWORD) VALUES (\"" 
 						 + user.getLogin() + "\",\"" 
@@ -36,4 +48,14 @@ public class SimpleChatDb {
 							"PASSWORD = \"" + user.getPwd() + "\" " +
 							" WHERE PSEUDO = \"" + user.getLogin() + "\""); 
 	}
+	
+	public ResultSet executeSelect(String query) {
+		try {
+			return con.getSmt().executeQuery(query);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 }

@@ -51,15 +51,33 @@ public class BroadcastThread extends Thread {
 	 */
 	public static void sendMessage(User sender, String msg) {
 		
+		System.out.println("sendMessage : "+"#"+sender.getLogin()+"#"+msg);
+		
+		String destinataire = null;
+		
+		if (msg.startsWith("PRIVATE")) {
+			String[] tab = msg.split(IfClientServerProtocol.SEPARATOR);
+			destinataire = tab[1];
+		}
+		
 		Collection<ServerToClientThread> clientTreads = clientTreadsMap.values();
 		Iterator<ServerToClientThread> receiverClientThreadIterator=clientTreads.iterator();
 		
 		//Boucle sur les threads client
 		while (receiverClientThreadIterator.hasNext()) {
 			ServerToClientThread clientThread = (ServerToClientThread) receiverClientThreadIterator.next();
-			clientThread.post("#"+sender.getLogin()+"#"+msg);
 			
-			System.out.println("sendMessage : "+"#"+sender.getLogin()+"#"+msg);
+			if (msg.startsWith("PRIVATE")) {
+				if (clientThread.getUser().getLogin().equals(destinataire)) {
+					clientThread.post("#" + sender.getLogin() + "#" + msg);
+				}
+
+				if (clientThread.getUser().getLogin().equals(sender.getLogin())) {
+					clientThread.post("#" + sender.getLogin() + "#" + msg);
+				}
+			} else {
+				clientThread.post("#" + sender.getLogin() + "#" + msg);
+			}
 		}
 	}
 	
