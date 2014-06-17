@@ -9,9 +9,11 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.StringTokenizer;
 
 import javax.swing.DefaultListModel;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Document;
 import javax.swing.text.Style;
 import javax.swing.text.StyledDocument;
@@ -26,6 +28,8 @@ import com.cfranc.irc.ui.SimpleChatClientApp;
 import com.cfranc.irc.ui.SimpleChatFrameClient;
 
 public class ClientToServerThread extends Thread implements IfSenderModel{
+	
+	private final static String PREFIXE_RELATIF = "/com/cfranc/irc/ui/";
 	
 	private SimpleChatFrameClient frameClient;
 	public void setFrameClient(SimpleChatFrameClient frameClient) {
@@ -103,23 +107,169 @@ System.out.println("receiveMessage() : user = " + user + ", line = " + line);
 			documentSalon = documentModelSalons.get(nomSalon);
 		}
 		
+		// Ajout des styles
+		SimpleChatClientApp.ajouterStyles(documentSalon);
+		
 		Style styleBI = ((StyledDocument)documentSalon).getStyle(SimpleChatClientApp.BOLD_ITALIC);
 		Style styleGP = ((StyledDocument)documentSalon).getStyle(SimpleChatClientApp.GRAY_PLAIN);
+		//Style styleImage = ((StyledDocument)documentSalon).getStyle(SimpleChatClientApp.SMILEY01);
 		
-		receiveMessage(user, line, styleBI, styleGP, documentSalon);
-	}
-
-	public void receiveMessage(String user, String line, Style styleBI, Style styleGP, StyledDocument documentSalon) {
-		
+		//receiveMessage(user, line, styleBI, styleGP, styleImage, documentSalon);
 		//
 		try {
+			// Test
+			System.out.println(">>Ecriture: line = " + line);
+			
 			documentSalon.insertString(documentSalon.getLength(), user + " : ", styleBI);
-			documentSalon.insertString(documentSalon.getLength(), line + "\n", styleGP);
+			//documentSalon.insertString(documentSalon.getLength(), line + "\n", styleGP);
+			
+			decoupeLineSmiley01(line, "\\:\\)", ":)", "IconSmiley09", documentSalon, styleGP);
+			
+			//Retour chariot
+			documentSalon.insertString(documentSalon.getLength(), "\n", styleGP);
+			
 		} catch (BadLocationException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
+
+	/**
+	 * @param line
+	 * @param documentSalon
+	 * @param styleGP
+	 * @param styleImage
+	 * @throws BadLocationException
+	 */
+	public void decoupeLineSmiley01(String line, String lineDelimiter, String smiley, String refSmiley, StyledDocument documentSalon,
+			Style styleGP) throws BadLocationException {
+		
+		String[] tabLignesSmiley01 = line.split(lineDelimiter);
+		for (int i = 0; i < tabLignesSmiley01.length; i++) {
+			if ((i != 0) && (i != tabLignesSmiley01.length)) {
+				documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+			}
+			decoupeLineSmiley02(tabLignesSmiley01[i], "\\:\\(", ":(", "IconSmiley05", documentSalon, styleGP);
+		}
+		if (line.endsWith(smiley)) {
+			documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+		}
+	}
+
+	/**
+	 * @param line
+	 * @param documentSalon
+	 * @param styleGP
+	 * @param styleImage
+	 * @throws BadLocationException
+	 */
+	public void decoupeLineSmiley02(String line, String lineDelimiter, String smiley, String refSmiley, StyledDocument documentSalon,
+			Style styleGP) throws BadLocationException {
+		
+		String[] tabLignesSmiley01 = line.split(lineDelimiter);
+		for (int i = 0; i < tabLignesSmiley01.length; i++) {
+			if ((i != 0) && (i != tabLignesSmiley01.length)) {
+				documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+			}
+			decoupeLineSmiley03(tabLignesSmiley01[i], "\\;\\)", ";)", "IconSmiley12", documentSalon, styleGP);
+		}
+		if (line.endsWith(smiley)) {
+			documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+		}
+	}
+
+	/**
+	 * @param line
+	 * @param documentSalon
+	 * @param styleGP
+	 * @param styleImage
+	 * @throws BadLocationException
+	 */
+	public void decoupeLineSmiley03(String line, String lineDelimiter, String smiley, String refSmiley, StyledDocument documentSalon,
+			Style styleGP) throws BadLocationException {
+		
+		String[] tabLignesSmiley01 = line.split(lineDelimiter);
+		for (int i = 0; i < tabLignesSmiley01.length; i++) {
+			if ((i != 0) && (i != tabLignesSmiley01.length)) {
+				documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+			}
+			decoupeLineSmiley05(tabLignesSmiley01[i], "\\:\\|", ":|", "IconSmiley02", documentSalon, styleGP);
+		}
+		if (line.endsWith(smiley)) {
+			documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+		}
+	}
+
+	/**
+	 * @param line
+	 * @param documentSalon
+	 * @param styleGP
+	 * @param styleImage
+	 * @throws BadLocationException
+	 */
+//	public void decoupeLineSmiley04(String line, String lineDelimiter, String smiley, String refSmiley, StyledDocument documentSalon,
+//			Style styleGP) throws BadLocationException {
+//		
+//		String[] tabLignesSmiley01 = line.split(lineDelimiter);
+//		for (int i = 0; i < tabLignesSmiley01.length; i++) {
+//			if ((i != 0) && (i != tabLignesSmiley01.length)) {
+//				documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+//			}
+//			decoupeLineSmiley05(tabLignesSmiley01[i], "\\:\\x", ":x", "IconSmiley10", documentSalon, styleGP);
+//		}
+//		if (line.endsWith(smiley)) {
+//			documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+//		}
+//	}
+
+	/**
+	 * @param line
+	 * @param documentSalon
+	 * @param styleGP
+	 * @param styleImage
+	 * @throws BadLocationException
+	 */
+	public void decoupeLineSmiley05(String line, String lineDelimiter, String smiley, String refSmiley, StyledDocument documentSalon,
+			Style styleGP) throws BadLocationException {
+		
+		String[] tabLignesSmiley01 = line.split(lineDelimiter);
+		for (int i = 0; i < tabLignesSmiley01.length; i++) {
+			if ((i != 0) && (i != tabLignesSmiley01.length)) {
+				documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+			}
+			decoupeLineSmiley06(tabLignesSmiley01[i], "\\:\\(", ":(", "IconSmiley02", documentSalon, styleGP);
+		}
+		if (line.endsWith(smiley)) {
+			documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+		}
+	}
+
+	/**
+	 * @param line
+	 * @param documentSalon
+	 * @param styleGP
+	 * @param styleImage
+	 * @throws BadLocationException
+	 */
+	public void decoupeLineSmiley06(String line, String lineDelimiter, String smiley, String refSmiley, StyledDocument documentSalon,
+			Style styleGP) throws BadLocationException {
+		
+		String[] tabLignesSmiley01 = line.split(lineDelimiter);
+		for (int i = 0; i < tabLignesSmiley01.length; i++) {
+			if ((i != 0) && (i != tabLignesSmiley01.length)) {
+				documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+			}
+			documentSalon.insertString(documentSalon.getLength(), tabLignesSmiley01[i], styleGP);
+		}
+		if (line.endsWith(smiley)) {
+			documentSalon.insertString(documentSalon.getLength(), refSmiley, ((StyledDocument)documentSalon).getStyle(refSmiley));
+		}
+	}
+	
+	
+//	public void receiveMessage(String user, String line, Style styleBI, Style styleGP, Style styleImage, StyledDocument documentSalon) {
+//		
+//	}
 
 	void readMsg() throws IOException{
 		String line = streamIn.readUTF();

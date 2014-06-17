@@ -352,7 +352,7 @@ public class SimpleChatFrameClient extends JFrame {
 	}
 
 	public void ajouterOnglet(String titreOnglet) {
-		JTextArea textArea = new JTextArea();
+		JTextPane textArea = new JTextPane();
 		textArea.setDocument(SimpleChatClientApp.getDefaultDocumentModel());
 		if (isSalonExist(titreOnglet) == false) {			
 			this.tabSalons.addTab(titreOnglet, null, new JScrollPane(textArea), null);			
