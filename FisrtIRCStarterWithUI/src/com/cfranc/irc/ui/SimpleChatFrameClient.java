@@ -1,6 +1,7 @@
 package com.cfranc.irc.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -8,67 +9,61 @@ import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 import javax.swing.AbstractAction;
-import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
-import javax.swing.JViewport;
+import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.ListModel;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.Style;
 import javax.swing.text.StyledDocument;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import com.cfranc.irc.IfClientServerProtocol;
 import com.cfranc.irc.client.IfSenderModel;
-
-import javax.swing.JPopupMenu;
-
-import java.awt.Component;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.IOException;
-
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JTree;
-import javax.swing.JTabbedPane;
+import com.cfranc.irc.server.SimpleChatDb;
 
 public class SimpleChatFrameClient extends JFrame {
+
+	private final static String PREFIXE_RELATIF = "/com/cfranc/irc/ui/";
 
 	// Sprint 1 remplacé par modèle JTree
 	//private static ListModel<String> listModel; 
@@ -117,7 +112,18 @@ public class SimpleChatFrameClient extends JFrame {
 	}
 	
 	public void sendMessage() {
-		sender.setMsgToSend(textField.getText());
+		String msgToSend = textField.getText();
+		
+		if (tabSalons.getSelectedIndex() != -1) {
+			String nomSalon = tabSalons.getTitleAt(tabSalons.getSelectedIndex());
+			
+			if (!nomSalon.equals("Salon général")) {
+				msgToSend = IfClientServerProtocol.PRIVATE + nomSalon + "#" + msgToSend; 
+			}
+		}
+		
+		System.out.println("message to send " + msgToSend);
+		sender.setMsgToSend(msgToSend);
 	}
 
 	public SimpleChatFrameClient() {
@@ -133,6 +139,7 @@ public class SimpleChatFrameClient extends JFrame {
 	public SimpleChatFrameClient(IfSenderModel sender, DefaultTreeModel clientTreeModel, Document documentModel) {
 		super();
 		this.sender=sender;
+		this.sender.setFrameClient(this);
 		
 		//Sprint 1 modelListe --> modele JTree
 		//this.listModel=clientListModel;
@@ -335,6 +342,31 @@ public class SimpleChatFrameClient extends JFrame {
 		});
 		toolBar.add(btnDeconnexion);
 	}
+	
+	public void ajouterOnglet(String titreOnglet) {
+		JTextArea textArea = new JTextArea();
+		textArea.setDocument(SimpleChatClientApp.getDefaultDocumentModel());
+		if (isSalonExist(titreOnglet) == false) {			
+			this.tabSalons.addTab(titreOnglet, null, new JScrollPane(textArea), null);			
+			this.sender.ajouterModeleSalon(titreOnglet, (StyledDocument) textArea.getDocument());
+			this.tabSalons.setSelectedIndex(this.tabSalons.getTabCount()-1);
+		}						
+	}
+	
+	/**
+	 * Test existence onglet 
+	 * @param titre de l'onglet
+	 * @return true si l'onglet existe déjà dans tabSalons
+	 */
+	private boolean isSalonExist(String tabTitre) {
+		for (int i = 0; i < this.tabSalons.getTabCount(); i++) {
+			if (this.tabSalons.getTitleAt(i).equals(tabTitre)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 
 	public JLabel getLblSender() {
 		return lblSender;
@@ -461,4 +493,79 @@ public class SimpleChatFrameClient extends JFrame {
 	public JButton getBtnSend() {
 		return btnSend;
 	}
+	
+	public String fabriqueToolTip(Object value) {
+		String result = "";
+		String reqSelect;
+		
+		String loginUser;
+		String password;
+		String nom = "?";
+		String prenom = "?";
+		String cheminImg = "";
+		
+		// Récupération des infos du User
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+        loginUser = (String)(node.getUserObject());
+
+		reqSelect = "SELECT PSEUDO, NOM, PRENOM, CHEMIN_IMG, PASSWORD FROM UTILISATEURS WHERE PSEUDO = '" + loginUser + "';";
+
+		SimpleChatDb db = new SimpleChatDb();
+		db.OuvrirBase();
+		ResultSet rsSelect = db.executeSelect(reqSelect);
+		if (rsSelect != null) {
+			try {
+				nom = rsSelect.getString("NOM");
+				prenom = rsSelect.getString("PRENOM");
+				cheminImg = rsSelect.getString("CHEMIN_IMG");
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		db.fermerBase();
+        
+		// Image test : http://fc04.deviantart.net/fs70/f/2010/102/b/8/Avatar_by_oohorusoo.png
+		result = "<html><img src=\"" + getClass().getResource(PREFIXE_RELATIF + cheminImg) + "\" alt=\"Avatar\" /><UL><LI>Login : " + loginUser + "</LI><LI>Nom : " + nom + "</LI><LI>Prénom : " + prenom + "</LI></UL></html>";
+		//System.out.println(">>result= " + result);
+		
+		return result;
+		
+	}
+	
+    /**
+     * Renderer perso pour le JTree
+     * @author Administrateur
+     *
+     */
+	private class MyRenderer extends DefaultTreeCellRenderer {
+        //Icon tutorialIcon;
+		//User user;
+ 
+        public MyRenderer() {
+        	super();
+        }
+ 
+        public Component getTreeCellRendererComponent(
+                            JTree tree,
+                            Object value,
+                            boolean sel,
+                            boolean expanded,
+                            boolean leaf,
+                            int row,
+                            boolean hasFocus) {
+ 
+            super.getTreeCellRendererComponent(
+                            tree, value, sel,
+                            expanded, leaf, row,
+                            hasFocus);
+            if (leaf) {
+            	setToolTipText(fabriqueToolTip(value)); 
+            } else {
+                setToolTipText("<Noeud non-feuille>");
+            }
+ 
+            return this;
+        }
+    }
+
 }
