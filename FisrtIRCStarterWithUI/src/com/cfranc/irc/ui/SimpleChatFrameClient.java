@@ -116,15 +116,15 @@ public class SimpleChatFrameClient extends JFrame {
 
 	public void sendMessage() {
 		String msgToSend = textField.getText();
-		
+
 		if (tabSalons.getSelectedIndex() != -1) {
 			String nomSalon = tabSalons.getTitleAt(tabSalons.getSelectedIndex());
-			
+
 			if (!nomSalon.equals("Salon général")) {
 				msgToSend = IfClientServerProtocol.PRIVATE + nomSalon + "#" + msgToSend; 
 			}
 		}
-		
+
 		System.out.println("message to send " + msgToSend);
 		sender.setMsgToSend(msgToSend);
 	}
@@ -236,12 +236,12 @@ public class SimpleChatFrameClient extends JFrame {
 		treeUtilisateur.setPreferredSize(new Dimension(100, 0));
 		treeUtilisateur.setMinimumSize(new Dimension(100, 0));
 		treeUtilisateur.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		
-		 //Enable tool tips.
-	    ToolTipManager.sharedInstance().registerComponent(treeUtilisateur);
-	    
-	    treeUtilisateur.setCellRenderer(new MyRenderer());
-		
+
+		//Enable tool tips.
+		ToolTipManager.sharedInstance().registerComponent(treeUtilisateur);
+
+		treeUtilisateur.setCellRenderer(new MyRenderer());
+
 		treeUtilisateur.addTreeSelectionListener(new TreeSelectionListener() {
 			public void valueChanged(TreeSelectionEvent e) {
 				DefaultMutableTreeNode node = (DefaultMutableTreeNode)
@@ -350,7 +350,7 @@ public class SimpleChatFrameClient extends JFrame {
 		});
 		toolBar.add(btnDeconnexion);
 	}
-	
+
 	public void ajouterOnglet(String titreOnglet) {
 		JTextArea textArea = new JTextArea();
 		textArea.setDocument(SimpleChatClientApp.getDefaultDocumentModel());
@@ -360,7 +360,7 @@ public class SimpleChatFrameClient extends JFrame {
 			this.tabSalons.setSelectedIndex(this.tabSalons.getTabCount()-1);
 		}						
 	}
-	
+
 	/**
 	 * Test existence onglet 
 	 * @param titre de l'onglet
@@ -372,7 +372,7 @@ public class SimpleChatFrameClient extends JFrame {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 
@@ -501,79 +501,81 @@ public class SimpleChatFrameClient extends JFrame {
 	public JButton getBtnSend() {
 		return btnSend;
 	}
-	
+
 	public String fabriqueToolTip(Object value) {
 		String result = "";
 		String reqSelect;
-		
+
 		String loginUser;
 		String password;
 		String nom = "?";
 		String prenom = "?";
 		String cheminImg = "";
-		
+
 		// Récupération des infos du User
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-        loginUser = (String)(node.getUserObject());
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+		loginUser = (String)(node.getUserObject());
 
 		reqSelect = "SELECT PSEUDO, NOM, PRENOM, CHEMIN_IMG, PASSWORD FROM UTILISATEURS WHERE PSEUDO = '" + loginUser + "';";
 
 		SimpleChatDb db = new SimpleChatDb();
 		db.OuvrirBase();
 		ResultSet rsSelect = db.executeSelect(reqSelect);
-		if (rsSelect != null) {
-			try {
+		try {
+			if (!rsSelect.next()) {
+				//ResultSet Vide
+			} else {
 				nom = rsSelect.getString("NOM");
 				prenom = rsSelect.getString("PRENOM");
 				cheminImg = rsSelect.getString("CHEMIN_IMG");
-			} catch (SQLException e) {
-				e.printStackTrace();
 			}
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		db.fermerBase();
-        
+
 		// Image test : http://fc04.deviantart.net/fs70/f/2010/102/b/8/Avatar_by_oohorusoo.png
 		result = "<html><img src=\"" + getClass().getResource(PREFIXE_RELATIF + cheminImg) + "\" alt=\"Avatar\" /><UL><LI>Login : " + loginUser + "</LI><LI>Nom : " + nom + "</LI><LI>Prénom : " + prenom + "</LI></UL></html>";
 		//System.out.println(">>result= " + result);
-		
+
 		return result;
-		
+
 	}
-	
-    /**
-     * Renderer perso pour le JTree
-     * @author Administrateur
-     *
-     */
+
+	/**
+	 * Renderer perso pour le JTree
+	 * @author Administrateur
+	 *
+	 */
 	private class MyRenderer extends DefaultTreeCellRenderer {
-        //Icon tutorialIcon;
+		//Icon tutorialIcon;
 		//User user;
- 
-        public MyRenderer() {
-        	super();
-        }
- 
-        public Component getTreeCellRendererComponent(
-                            JTree tree,
-                            Object value,
-                            boolean sel,
-                            boolean expanded,
-                            boolean leaf,
-                            int row,
-                            boolean hasFocus) {
- 
-            super.getTreeCellRendererComponent(
-                            tree, value, sel,
-                            expanded, leaf, row,
-                            hasFocus);
-            if (leaf) {
-            	setToolTipText(fabriqueToolTip(value)); 
-            } else {
-                setToolTipText("<Noeud non-feuille>");
-            }
- 
-            return this;
-        }
-    }
+
+		public MyRenderer() {
+			super();
+		}
+
+		public Component getTreeCellRendererComponent(
+				JTree tree,
+				Object value,
+				boolean sel,
+				boolean expanded,
+				boolean leaf,
+				int row,
+				boolean hasFocus) {
+
+			super.getTreeCellRendererComponent(
+					tree, value, sel,
+					expanded, leaf, row,
+					hasFocus);
+			if (leaf) {
+				setToolTipText(fabriqueToolTip(value)); 
+			} else {
+				setToolTipText("<Noeud non-feuille>");
+			}
+
+			return this;
+		}
+	}
 
 }
