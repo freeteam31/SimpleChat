@@ -43,6 +43,10 @@ public class ServerToClientThread extends Thread{
 		}
 	}
 	
+	public User getUser() {
+		return user;
+	}
+
 	public void open() throws IOException {
 		streamIn = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 		streamOut = new DataOutputStream(socket.getOutputStream());
@@ -63,17 +67,19 @@ public class ServerToClientThread extends Thread{
 			open();
 			boolean done = false;
 			while (!done) {
-				try {
+				try {				
 					if(streamIn.available()>0){
 						String line = streamIn.readUTF();
 						System.out.println(">>ServerToClientThread.line = " + line);
 						
-						String[] userMsg = line.split(IfClientServerProtocol.SEPARATOR);
+						
+						
+						String[] userMsg = line.split(IfClientServerProtocol.SEPARATOR, 3);
 						String login = userMsg[1];
-						//System.out.println(">>userMsg[1]="+login);
+						System.out.println(">>userMsg[1]="+login);
 						
 						String msg = userMsg[2];
-						//System.out.println(">>userMsg[2]="+msg);
+						System.out.println(">>userMsg[2]="+msg);
 						
 						done = msg.equals(".bye");
 						if (!done) {

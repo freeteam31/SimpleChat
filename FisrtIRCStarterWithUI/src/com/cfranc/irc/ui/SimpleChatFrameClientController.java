@@ -31,29 +31,10 @@ public class SimpleChatFrameClientController implements MouseListener {
 			System.out.println("double-clic : " + selPath.getLastPathComponent());
 			String tabTitre = selPath.getLastPathComponent().toString();
 
-			JTextArea textArea = new JTextArea();
-			textArea.setDocument(SimpleChatClientApp.getDefaultDocumentModel());
-			if (isSalonExist(tabTitre) == false) {			
-				frameClient.tabSalons.addTab(tabTitre, null, new JScrollPane(textArea), null);
-				frameClient.sender.ajouterModeleSalon(tabTitre, (StyledDocument) textArea.getDocument());
-			}						
+			frameClient.ajouterOnglet(tabTitre);									
 		}		
 	}
 	
-	/**
-	 * Test existence onglet 
-	 * @param titre de l'onglet
-	 * @return true si l'onglet existe déjà dans tabSalons
-	 */
-	private boolean isSalonExist(String tabTitre) {
-		for (int i = 0; i < frameClient.tabSalons.getTabCount(); i++) {
-			if (frameClient.tabSalons.getTitleAt(i).equals(tabTitre)) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {

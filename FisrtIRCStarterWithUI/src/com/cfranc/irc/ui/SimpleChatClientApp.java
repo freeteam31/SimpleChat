@@ -12,6 +12,7 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -34,8 +35,26 @@ import com.cfranc.irc.server.ClientConnectThread;
  *
  */
 public class SimpleChatClientApp implements ActionListener {
-    public static final String BOLD_ITALIC = "BoldItalic";
+
+	private final static String PREFIXE_RELATIF = "/com/cfranc/irc/ui/";
+	// Styles
+	public static final String BOLD_ITALIC = "BoldItalic";
     public static final String GRAY_PLAIN = "Gray";
+    public static final String SMILEY01 = "IconSmiley01";
+    public static final String SMILEY02 = "IconSmiley02";
+    public static final String SMILEY03 = "IconSmiley03";
+    public static final String SMILEY04 = "IconSmiley04";
+    public static final String SMILEY05 = "IconSmiley05";
+    public static final String SMILEY06 = "IconSmiley06";
+    public static final String SMILEY07 = "IconSmiley07";
+    public static final String SMILEY08 = "IconSmiley08";
+    public static final String SMILEY09 = "IconSmiley09";
+    public static final String SMILEY10 = "IconSmiley10";
+    public static final String SMILEY11 = "IconSmiley11";
+    public static final String SMILEY12 = "IconSmiley12";
+    // Tokens
+    public static final String TOKEN01 = ":)";
+    public static final String TOKEN02 = ":(";
 
 	// Thread de communication avec le Server
     private static ClientToServerThread clientToServerThread;
@@ -63,23 +82,69 @@ public class SimpleChatClientApp implements ActionListener {
 	 */
 	public static DefaultStyledDocument getDefaultDocumentModel() {
 		DefaultStyledDocument res = new DefaultStyledDocument();
+		
+		ajouterStyles(res);
+
+		return res;
+	}
+	
+	/**
+	 * Ajoute les style au doc stylisé
+	 * @param doc
+	 */
+	public static void ajouterStyles(StyledDocument doc) {
+	    Style styleDefault = (Style) doc.getStyle(StyleContext.DEFAULT_STYLE);
 	    
-	    Style styleDefault = (Style) res.getStyle(StyleContext.DEFAULT_STYLE);
-	    
-	    res.addStyle(BOLD_ITALIC, styleDefault);
-	    Style styleBI = res.getStyle(BOLD_ITALIC);
+	    doc.addStyle(BOLD_ITALIC, styleDefault);
+	    Style styleBI = doc.getStyle(BOLD_ITALIC);
 	    StyleConstants.setBold(styleBI, true);
 	    StyleConstants.setItalic(styleBI, true);
 	    StyleConstants.setForeground(styleBI, Color.black);	    
 
-	    res.addStyle(GRAY_PLAIN, styleDefault);
-        Style styleGP = res.getStyle(GRAY_PLAIN);
+	    doc.addStyle(GRAY_PLAIN, styleDefault);
+        Style styleGP = doc.getStyle(GRAY_PLAIN);
         StyleConstants.setBold(styleGP, false);
         StyleConstants.setItalic(styleGP, false);
         StyleConstants.setForeground(styleGP, Color.lightGray);
+        
+        for (int i = 1; i < 10; i++) {
+        	String ref = "IconSmiley0" + i;
+        	System.out.println(">>Ajout du style " + ref + ", ressource = " + PREFIXE_RELATIF + "Smiley0" + i + ".jpg");
+            doc.addStyle(ref, styleDefault);
+            Style styleImage = doc.getStyle(ref);
+            StyleConstants.setAlignment(styleImage, StyleConstants.ALIGN_CENTER);
+            ImageIcon img = new ImageIcon(ClassLoader.getSystemClassLoader().getClass().getResource(PREFIXE_RELATIF + "Smiley0" + i + ".jpg"));
+            if (img != null) {
+                StyleConstants.setIcon(styleImage, img);
+            }
+		}
+        
+        doc.addStyle(SMILEY10, styleDefault);
+        Style styleImage = doc.getStyle(SMILEY10);
+        StyleConstants.setAlignment(styleImage, StyleConstants.ALIGN_CENTER);
+        ImageIcon img = new ImageIcon(ClassLoader.getSystemClassLoader().getClass().getResource(PREFIXE_RELATIF + "Smiley10.jpg"));
+        if (img != null) {
+            StyleConstants.setIcon(styleImage, img);
+        }
 
-		return res;
+        doc.addStyle(SMILEY11, styleDefault);
+        styleImage = doc.getStyle(SMILEY11);
+        StyleConstants.setAlignment(styleImage, StyleConstants.ALIGN_CENTER);
+        img = new ImageIcon(ClassLoader.getSystemClassLoader().getClass().getResource(PREFIXE_RELATIF + "Smiley11.jpg"));
+        if (img != null) {
+            StyleConstants.setIcon(styleImage, img);
+        }
+        
+        doc.addStyle(SMILEY12, styleDefault);
+        styleImage = doc.getStyle(SMILEY12);
+        StyleConstants.setAlignment(styleImage, StyleConstants.ALIGN_CENTER);
+        img = new ImageIcon(ClassLoader.getSystemClassLoader().getClass().getResource(PREFIXE_RELATIF + "Smiley12.jpg"));
+        if (img != null) {
+            StyleConstants.setIcon(styleImage, img);
+        }
 	}
+	
+	
 
 	/**
 	 * Affichage de la frame du client
