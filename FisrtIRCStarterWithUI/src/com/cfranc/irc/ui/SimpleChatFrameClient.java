@@ -10,6 +10,8 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 import javax.swing.AbstractAction;
@@ -39,6 +41,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -51,11 +54,14 @@ import javax.swing.text.Document;
 import javax.swing.text.Style;
 import javax.swing.text.StyledDocument;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import com.cfranc.irc.client.IfSenderModel;
+import com.cfranc.irc.server.SimpleChatDb;
+import com.cfranc.irc.server.User;
 
 import javax.swing.JPopupMenu;
 
@@ -69,6 +75,8 @@ import javax.swing.JTree;
 import javax.swing.JTabbedPane;
 
 public class SimpleChatFrameClient extends JFrame {
+
+	private final static String PREFIXE_RELATIF = "/com/cfranc/irc/ui/";
 
 	// Sprint 1 remplacé par modèle JTree
 	//private static ListModel<String> listModel; 
@@ -115,7 +123,7 @@ public class SimpleChatFrameClient extends JFrame {
 			line=sc.nextLine();			
 		}
 	}
-	
+
 	public void sendMessage() {
 		sender.setMsgToSend(textField.getText());
 	}
@@ -133,16 +141,16 @@ public class SimpleChatFrameClient extends JFrame {
 	public SimpleChatFrameClient(IfSenderModel sender, DefaultTreeModel clientTreeModel, Document documentModel) {
 		super();
 		this.sender=sender;
-		
+
 		//Sprint 1 modelListe --> modele JTree
 		//this.listModel=clientListModel;
 		this.treeModel = clientTreeModel;
 
 		setTitle(Messages.getString("SimpleChatFrameClient.4")); //$NON-NLS-1$
-		
+
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		
+
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
@@ -150,7 +158,7 @@ public class SimpleChatFrameClient extends JFrame {
 				actionDeconnexion();
 			}
 		});
-		
+
 		setBounds(100, 100, 661, 443);
 
 		JMenuBar menuBar = new JMenuBar();
@@ -227,27 +235,33 @@ public class SimpleChatFrameClient extends JFrame {
 		treeUtilisateur.setPreferredSize(new Dimension(100, 0));
 		treeUtilisateur.setMinimumSize(new Dimension(100, 0));
 		treeUtilisateur.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		
+		 //Enable tool tips.
+	    ToolTipManager.sharedInstance().registerComponent(treeUtilisateur);
+	    
+	    treeUtilisateur.setCellRenderer(new MyRenderer());
+		
 		treeUtilisateur.addTreeSelectionListener(new TreeSelectionListener() {
-		    public void valueChanged(TreeSelectionEvent e) {
-		        DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-		        treeUtilisateur.getLastSelectedPathComponent();
+			public void valueChanged(TreeSelectionEvent e) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+						treeUtilisateur.getLastSelectedPathComponent();
 
-		    /* if nothing is selected */ 
-		        if (node == null) return;
+				/* if nothing is selected */ 
+				if (node == null) return;
 
-		    /* retrieve the node that was selected */ 
-		        Object nodeInfo = node.getUserObject();
-		    	System.out.println(">>valueChanged : " + nodeInfo);
-		       // .....
-		    /* React to the node selection. */
-		       // ...
-		    }
+				/* retrieve the node that was selected */ 
+				Object nodeInfo = node.getUserObject();
+				System.out.println(">>valueChanged : " + nodeInfo);
+				// .....
+				/* React to the node selection. */
+				// ...
+			}
 		});
 		treeUtilisateur.addMouseListener(new SimpleChatFrameClientController(this));
 
-		
+
 		splitPane.setLeftComponent(treeUtilisateur);
-		
+
 		tabSalons = new JTabbedPane(JTabbedPane.TOP);
 		splitPane.setRightComponent(tabSalons);
 
@@ -326,7 +340,7 @@ public class SimpleChatFrameClient extends JFrame {
 		contentPane.add(toolBar, BorderLayout.NORTH);
 
 		JButton button = toolBar.add(sendAction);
-		
+
 		JButton btnDeconnexion = new JButton(Messages.getString("SimpleChatFrameClient.btnNewButton.text")); //$NON-NLS-1$
 		btnDeconnexion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -442,11 +456,11 @@ public class SimpleChatFrameClient extends JFrame {
 			System.out.println("treeStructureChanged");
 		}
 	}
-	
+
 	public JTree getTreeUtilisateur() {
 		return treeUtilisateur;
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -461,4 +475,79 @@ public class SimpleChatFrameClient extends JFrame {
 	public JButton getBtnSend() {
 		return btnSend;
 	}
+	
+	public String fabriqueToolTip(Object value) {
+		String result = "";
+		String reqSelect;
+		
+		String loginUser;
+		String password;
+		String nom = "?";
+		String prenom = "?";
+		String cheminImg = "";
+		
+		// Récupération des infos du User
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+        loginUser = (String)(node.getUserObject());
+
+		reqSelect = "SELECT PSEUDO, NOM, PRENOM, CHEMIN_IMG, PASSWORD FROM UTILISATEURS WHERE PSEUDO = '" + loginUser + "';";
+
+		SimpleChatDb db = new SimpleChatDb();
+		db.OuvrirBase();
+		ResultSet rsSelect = db.executeSelect(reqSelect);
+		if (rsSelect != null) {
+			try {
+				nom = rsSelect.getString("NOM");
+				prenom = rsSelect.getString("PRENOM");
+				cheminImg = rsSelect.getString("CHEMIN_IMG");
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		db.fermerBase();
+        
+		// Image test : http://fc04.deviantart.net/fs70/f/2010/102/b/8/Avatar_by_oohorusoo.png
+		result = "<html><img src=\"" + getClass().getResource(PREFIXE_RELATIF + cheminImg) + "\" alt=\"Avatar\" /><UL><LI>Login : " + loginUser + "</LI><LI>Nom : " + nom + "</LI><LI>Prénom : " + prenom + "</LI></UL></html>";
+		//System.out.println(">>result= " + result);
+		
+		return result;
+		
+	}
+	
+    /**
+     * Renderer perso pour le JTree
+     * @author Administrateur
+     *
+     */
+	private class MyRenderer extends DefaultTreeCellRenderer {
+        //Icon tutorialIcon;
+		//User user;
+ 
+        public MyRenderer() {
+        	super();
+        }
+ 
+        public Component getTreeCellRendererComponent(
+                            JTree tree,
+                            Object value,
+                            boolean sel,
+                            boolean expanded,
+                            boolean leaf,
+                            int row,
+                            boolean hasFocus) {
+ 
+            super.getTreeCellRendererComponent(
+                            tree, value, sel,
+                            expanded, leaf, row,
+                            hasFocus);
+            if (leaf) {
+            	setToolTipText(fabriqueToolTip(value)); 
+            } else {
+                setToolTipText("<Noeud non-feuille>");
+            }
+ 
+            return this;
+        }
+    }
+
 }

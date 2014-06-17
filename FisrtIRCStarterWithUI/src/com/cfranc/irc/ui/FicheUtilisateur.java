@@ -240,13 +240,13 @@ public class FicheUtilisateur extends JDialog {
 						String loginUtilisateur = getTextFieldLogin().getText(); 
 						if ((loginUtilisateur != null) && (!loginUtilisateur.equals(""))) {
 							SimpleChatDb db = new SimpleChatDb();
-							
 							db.OuvrirBase();
 							User newUser = new User(loginUtilisateur, getPasswordField().getText());
 							newUser.setNom(getTextFieldNom().getText());
 							newUser.setPrenom(getTextFieldPrenom().getText());
 							newUser.setCheminImg((String)getComboAvatar().getSelectedItem());
 							db.ajouterUtilisateur(newUser);
+							db.fermerBase();
 							
 							SwingUtilities.windowForComponent((Component)e.getSource()).dispose();
 							
