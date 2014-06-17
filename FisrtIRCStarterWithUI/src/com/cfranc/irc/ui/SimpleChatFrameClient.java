@@ -44,6 +44,7 @@ import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
+import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
@@ -60,6 +61,8 @@ import javax.swing.tree.TreeSelectionModel;
 import com.cfranc.irc.IfClientServerProtocol;
 import com.cfranc.irc.client.IfSenderModel;
 import com.cfranc.irc.server.SimpleChatDb;
+import com.cfranc.irc.server.User;
+
 
 public class SimpleChatFrameClient extends JFrame {
 
@@ -110,7 +113,7 @@ public class SimpleChatFrameClient extends JFrame {
 			line=sc.nextLine();			
 		}
 	}
-	
+
 	public void sendMessage() {
 		String msgToSend = textField.getText();
 		
@@ -140,16 +143,15 @@ public class SimpleChatFrameClient extends JFrame {
 		super();
 		this.sender=sender;
 		this.sender.setFrameClient(this);
-		
 		//Sprint 1 modelListe --> modele JTree
 		//this.listModel=clientListModel;
 		this.treeModel = clientTreeModel;
 
 		setTitle(Messages.getString("SimpleChatFrameClient.4")); //$NON-NLS-1$
-		
+
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		
+
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
@@ -157,7 +159,7 @@ public class SimpleChatFrameClient extends JFrame {
 				actionDeconnexion();
 			}
 		});
-		
+
 		setBounds(100, 100, 661, 443);
 
 		JMenuBar menuBar = new JMenuBar();
@@ -234,27 +236,33 @@ public class SimpleChatFrameClient extends JFrame {
 		treeUtilisateur.setPreferredSize(new Dimension(100, 0));
 		treeUtilisateur.setMinimumSize(new Dimension(100, 0));
 		treeUtilisateur.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		
+		 //Enable tool tips.
+	    ToolTipManager.sharedInstance().registerComponent(treeUtilisateur);
+	    
+	    treeUtilisateur.setCellRenderer(new MyRenderer());
+		
 		treeUtilisateur.addTreeSelectionListener(new TreeSelectionListener() {
-		    public void valueChanged(TreeSelectionEvent e) {
-		        DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-		        treeUtilisateur.getLastSelectedPathComponent();
+			public void valueChanged(TreeSelectionEvent e) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+						treeUtilisateur.getLastSelectedPathComponent();
 
-		    /* if nothing is selected */ 
-		        if (node == null) return;
+				/* if nothing is selected */ 
+				if (node == null) return;
 
-		    /* retrieve the node that was selected */ 
-		        Object nodeInfo = node.getUserObject();
-		    	System.out.println(">>valueChanged : " + nodeInfo);
-		       // .....
-		    /* React to the node selection. */
-		       // ...
-		    }
+				/* retrieve the node that was selected */ 
+				Object nodeInfo = node.getUserObject();
+				System.out.println(">>valueChanged : " + nodeInfo);
+				// .....
+				/* React to the node selection. */
+				// ...
+			}
 		});
 		treeUtilisateur.addMouseListener(new SimpleChatFrameClientController(this));
 
-		
+
 		splitPane.setLeftComponent(treeUtilisateur);
-		
+
 		tabSalons = new JTabbedPane(JTabbedPane.TOP);
 		splitPane.setRightComponent(tabSalons);
 
@@ -333,7 +341,7 @@ public class SimpleChatFrameClient extends JFrame {
 		contentPane.add(toolBar, BorderLayout.NORTH);
 
 		JButton button = toolBar.add(sendAction);
-		
+
 		JButton btnDeconnexion = new JButton(Messages.getString("SimpleChatFrameClient.btnNewButton.text")); //$NON-NLS-1$
 		btnDeconnexion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -474,11 +482,11 @@ public class SimpleChatFrameClient extends JFrame {
 			System.out.println("treeStructureChanged");
 		}
 	}
-	
+
 	public JTree getTreeUtilisateur() {
 		return treeUtilisateur;
 	}
-	
+
 	/**
 	 * 
 	 */

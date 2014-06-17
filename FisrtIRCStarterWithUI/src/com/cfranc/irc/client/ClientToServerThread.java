@@ -141,8 +141,9 @@ System.out.println("receiveMessage() : user = " + user + ", line = " + line);
 				}
 			}	
 			
-			if (!noeudExiste) { 
-				((DefaultMutableTreeNode)clientTreeModel.getRoot()).add(new DefaultMutableTreeNode(newUser));
+			if (!noeudExiste) {
+				DefaultMutableTreeNode noeudAjoute = new DefaultMutableTreeNode(newUser);
+				((DefaultMutableTreeNode)clientTreeModel.getRoot()).add(noeudAjoute);
 				clientTreeModel.reload();
 				receiveMessage(newUser, " entre dans le salon...", null);
 			}
