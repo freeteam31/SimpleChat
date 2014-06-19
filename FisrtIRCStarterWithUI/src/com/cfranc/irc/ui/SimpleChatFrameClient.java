@@ -140,7 +140,11 @@ public class SimpleChatFrameClient extends JFrame {
 	 */
 	//public SimpleChatFrameClient(IfSenderModel sender, ListModel<String> clientListModel, Document documentModel) {
 	public SimpleChatFrameClient(IfSenderModel sender, DefaultTreeModel clientTreeModel, Document documentModel) {
+		
 		super();
+		
+		SimpleChatFrameClientController controller = new SimpleChatFrameClientController(this);
+				
 		this.sender=sender;
 		this.sender.setFrameClient(this);
 		//Sprint 1 modelListe --> modele JTree
@@ -152,13 +156,7 @@ public class SimpleChatFrameClient extends JFrame {
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				System.out.println(">>windowClosing(WindowEvent e)");
-				actionDeconnexion();
-			}
-		});
+		addWindowListener(controller);
 
 		setBounds(100, 100, 661, 443);
 
@@ -174,11 +172,7 @@ public class SimpleChatFrameClient extends JFrame {
 		JSeparator separator1 = new JSeparator();
 		mnFile.add(separator1);
 		JMenuItem mntmDeconnexion = new JMenuItem(Messages.getString("SimpleChatFrameClient.libDeconnexion")); //$NON-NLS-1$
-		mntmDeconnexion.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				actionDeconnexion();
-			}
-		});
+		mntmDeconnexion.addActionListener(controller);
 		mnFile.add(mntmDeconnexion);
 
 		JMenu mnAffichage = new JMenu(Messages.getString("SimpleChatFrameClient.14")); //$NON-NLS-1$
@@ -211,25 +205,7 @@ public class SimpleChatFrameClient extends JFrame {
 		JSplitPane splitPane = new JSplitPane();
 		contentPane.add(splitPane, BorderLayout.CENTER);
 
-		// Sprint 1 : adapter JList en JTree 
-		//		JList<String> list = new JList<String>(listModel);
-		//		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		//		list.addListSelectionListener(new ListSelectionListener() {
-		//			public void valueChanged(ListSelectionEvent e) {
-		//				int iFirstSelectedElement=((JList)e.getSource()).getSelectedIndex();
-		//				if(iFirstSelectedElement>=0 && iFirstSelectedElement<listModel.getSize()){
-		//					senderName=listModel.getElementAt(iFirstSelectedElement);
-		//					getLblSender().setText(senderName);
-		//				}
-		//				else{
-		//					getLblSender().setText("?"); //$NON-NLS-1$
-		//				}
-		//			}
-		//		});
-		//		list.setMinimumSize(new Dimension(100, 0));
-		//		splitPane.setLeftComponent(list);
-
-		treeModel.addTreeModelListener(new MyTreeModelListener());
+		treeModel.addTreeModelListener(controller);
 
 		treeUtilisateur = new JTree(treeModel);		
 		treeUtilisateur.setRootVisible(false);
@@ -242,23 +218,8 @@ public class SimpleChatFrameClient extends JFrame {
 
 		treeUtilisateur.setCellRenderer(new MyRenderer());
 
-		treeUtilisateur.addTreeSelectionListener(new TreeSelectionListener() {
-			public void valueChanged(TreeSelectionEvent e) {
-				DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-						treeUtilisateur.getLastSelectedPathComponent();
-
-				/* if nothing is selected */ 
-				if (node == null) return;
-
-				/* retrieve the node that was selected */ 
-				Object nodeInfo = node.getUserObject();
-				System.out.println(">>valueChanged : " + nodeInfo);
-				// .....
-				/* React to the node selection. */
-				// ...
-			}
-		});
-		treeUtilisateur.addMouseListener(new SimpleChatFrameClientController(this));
+		treeUtilisateur.addTreeSelectionListener(controller);
+		treeUtilisateur.addMouseListener(controller);
 
 
 		splitPane.setLeftComponent(treeUtilisateur);
@@ -288,11 +249,7 @@ public class SimpleChatFrameClient extends JFrame {
 				}				
 			}
 		});
-		//		JTree treeUtilisateur = new JTree();
-		//		JScrollPane scrollPaneUtilisateur = new JScrollPane(treeUtilisateur);
-		//		contentPane.add(scrollPaneUtilisateur, BorderLayout.WEST);
-		//		scrollPaneUtilisateur.setVisible(false);
-		//
+
 
 		JPanel panel_1 = new JPanel();
 		contentPane.add(panel_1, BorderLayout.SOUTH);
@@ -343,11 +300,7 @@ public class SimpleChatFrameClient extends JFrame {
 		JButton button = toolBar.add(sendAction);
 
 		JButton btnDeconnexion = new JButton(Messages.getString("SimpleChatFrameClient.btnNewButton.text")); //$NON-NLS-1$
-		btnDeconnexion.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				actionDeconnexion();
-			}
-		});
+		btnDeconnexion.addActionListener(controller);
 		toolBar.add(btnDeconnexion);
 	}
 
@@ -449,55 +402,11 @@ public class SimpleChatFrameClient extends JFrame {
 		this.toolBar.setVisible(afficher);
 	}
 
-	/**
-	 * 
-	 * @author Administrateur
-	 *
-	 */
-	private class MyTreeModelListener implements TreeModelListener {
-		public void treeNodesChanged(TreeModelEvent e) {
-			DefaultMutableTreeNode node;
-			node = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
-
-			/*
-			 * If the event lists children, then the changed
-			 * node is the child of the node we've already
-			 * gotten.  Otherwise, the changed node and the
-			 * specified node are the same.
-			 */
-
-			int index = e.getChildIndices()[0];
-			node = (DefaultMutableTreeNode)(node.getChildAt(index));
-
-			System.out.println("The user has finished editing the node.");
-			System.out.println("New value: " + node.getUserObject());
-		}
-		public void treeNodesInserted(TreeModelEvent e) {
-			System.out.println("treeNodesInserted");
-		}
-		public void treeNodesRemoved(TreeModelEvent e) {
-			System.out.println("treeNodesRemoved");
-		}
-		public void treeStructureChanged(TreeModelEvent e) {
-			System.out.println("treeStructureChanged");
-		}
-	}
-
 	public JTree getTreeUtilisateur() {
 		return treeUtilisateur;
 	}
 
-	/**
-	 * 
-	 */
-	public void actionDeconnexion() {
-		try {
-			sender.quitServer();
-			this.dispose();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+	
 	public JButton getBtnSend() {
 		return btnSend;
 	}

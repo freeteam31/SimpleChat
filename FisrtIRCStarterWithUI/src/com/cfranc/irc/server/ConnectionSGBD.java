@@ -35,6 +35,7 @@ public class ConnectionSGBD {
 				smt = conn.createStatement();
 
 			} else if (url.indexOf("sqlite") != -1) {
+				System.out.println("Ouverture de la base url : " + url);
 				if (JDBC.isValidURL(url)) {
 				
 					if (conn != null) {
